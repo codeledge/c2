@@ -15,5 +15,5 @@ export const WaterPipePath = ({
     () => getWaterPipePathD(source, target, options),
     [options, source, target]
   );
-  return <path d={d} fill="none" stroke="grey" strokeWidth="4" {...props} />;
+  return <path d={d} fill="none" stroke="grey" strokeWidth="5" {...props} />;
 };
