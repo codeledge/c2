@@ -10,11 +10,11 @@ export type TimelineEventData = {
 };
 
 export type ClientTimelineEvent = TimelineEventData & {
-  x?: number;
+  x: number;
   y: number;
   startX?: number;
   endX?: number;
-  dateTime?: DateTime;
+  dateTime: DateTime;
   startDateTime?: DateTime;
   endDateTime?: DateTime;
 };
@@ -50,26 +50,25 @@ export const TimelineEvent = ({
       >
         {event.name}
       </text>
-      {event.dateTime && (
+      {event.startX && event.endX ? (
+        <path
+          d={getElongatedCirclePathD(
+            { x: event.startX - event.x, y: 0 }, //because is relative to g
+            { x: event.endX - event.x, y: 0 },
+            eventCircleRadius
+          )}
+          fill="none"
+          stroke={timelineConfig.primaryColor}
+          strokeWidth="3"
+          {...props}
+        />
+      ) : (
         <circle
           cx={0}
           cy={0}
           r={eventCircleRadius}
           fill="lightgrey"
           stroke="grey"
-          strokeWidth="3"
-          {...props}
-        />
-      )}
-      {(event.startX || event.endX) && (
-        <path
-          d={getElongatedCirclePathD(
-            event.startX ? { x: event.startX! - event.x!, y: 0 } : undefined,
-            event.endX ? { x: event.endX! - event.x!, y: 0 } : undefined,
-            eventCircleRadius
-          )}
-          fill="none"
-          stroke={timelineConfig.primaryColor}
           strokeWidth="3"
           {...props}
         />
@@ -81,15 +80,11 @@ export const TimelineEvent = ({
         color={timelineConfig.primaryColor}
         fontSize={12}
       >
-        {event.dateTime
-          ? event.dateTime?.toFormat("yyyy-MM-dd HH:mm:ss")
-          : event.startDateTime && event.endDateTime
+        {event.startDateTime && event.endDateTime
           ? `${event.startDateTime?.toFormat(
               "yyyy-MM-dd HH:mm:ss"
             )} - ${event.endDateTime?.toFormat("yyyy-MM-dd HH:mm:ss")}`
-          : event.startDateTime
-          ? event.startDateTime?.toFormat("yyyy-MM-dd HH:mm:ss")
-          : event.endDateTime?.toFormat("yyyy-MM-dd HH:mm:ss")}
+          : event.dateTime?.toFormat("yyyy-MM-dd HH:mm:ss")}
       </text>
     </g>
   );

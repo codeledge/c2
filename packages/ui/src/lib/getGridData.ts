@@ -17,17 +17,30 @@ export const getGridData = (
     (events: ClientTimelineEvent[], row, rowIndex) => {
       const rowEvents = row.events.reduce(
         (events: ClientTimelineEvent[], event) => {
-          const dateTime = parseDateTime(event.date);
+          if (!event.date && !(event.startDate && event.endDate)) {
+            console.log("skipped event", event);
+            return events;
+          }
+
+          let dateTime = parseDateTime(event.date);
           const startDateTime = parseDateTime(event.startDate);
           const endDateTime = parseDateTime(event.endDate);
 
-          if (!startDateTime && !dateTime && !endDateTime) return events;
+          if (!dateTime && startDateTime && endDateTime) {
+            dateTime = endDateTime.minus({
+              milliseconds:
+                endDateTime.diff(startDateTime).as("milliseconds") / 2,
+            });
+          }
+          if (!dateTime && !startDateTime && endDateTime) {
+            dateTime = startDateTime;
+          }
 
           if (!minDateTime) {
-            minDateTime = startDateTime || dateTime || endDateTime;
+            minDateTime = startDateTime || dateTime;
           }
           if (!maxDateTime) {
-            maxDateTime = endDateTime || dateTime || startDateTime;
+            maxDateTime = dateTime || endDateTime;
           }
 
           if (dateTime && dateTime < minDateTime!) {
@@ -36,25 +49,22 @@ export const getGridData = (
           if (startDateTime && startDateTime < minDateTime!) {
             minDateTime = startDateTime;
           }
-          if (endDateTime && endDateTime < minDateTime!) {
-            minDateTime = endDateTime;
-          }
+
           if (dateTime && dateTime > maxDateTime!) {
             maxDateTime = dateTime;
           }
-          if (startDateTime && startDateTime > maxDateTime!) {
-            maxDateTime = startDateTime;
-          }
+
           if (endDateTime && endDateTime > maxDateTime!) {
             maxDateTime = endDateTime;
           }
 
           return events.concat({
             ...event,
+            x: -1, // since required
             y:
               rowIndex * timelineConfig.rowHeight +
               timelineConfig.rowHeight / 2,
-            dateTime,
+            dateTime: dateTime!,
             startDateTime,
             endDateTime,
           });
@@ -69,34 +79,37 @@ export const getGridData = (
 
   // todo throw error on no { minDateTime, maxDateTime }
 
-  const eventsDurationMilliseconds = maxDateTime!
-    .diff(minDateTime!)
-    .as("milliseconds");
+  console.log({ minDateTime, maxDateTime });
 
-  const minDateEdge = minDateTime!.minus({
+  const eventsDurationMilliseconds =
+    maxDateTime!.diff(minDateTime!).as("milliseconds") || 10000000; //if only one event, make it something, what though?
+
+  const gridStartDateTime = minDateTime!.minus({
     milliseconds: eventsDurationMilliseconds / 10,
   });
-  const maxDateEdge = maxDateTime!.plus({
+  const gridEndDateTime = maxDateTime!.plus({
     milliseconds: eventsDurationMilliseconds / 10,
   });
 
-  const gridDurationMilliseconds = maxDateEdge!
-    .diff(minDateEdge!)
+  const gridDurationMilliseconds = gridEndDateTime!
+    .diff(gridStartDateTime!)
     .as("milliseconds");
+
+  console.log({ gridStartDateTime, gridEndDateTime, gridDurationMilliseconds });
 
   clientEvents = clientEvents.map((event) => {
     return {
       ...event,
       x: getX(
-        event.dateTime || event.startDateTime || event.endDateTime!,
-        minDateEdge,
+        event.dateTime,
+        gridStartDateTime,
         gridDurationMilliseconds,
         timelineConfig
       ),
       startX: event.startDateTime
         ? getX(
             event.startDateTime,
-            minDateEdge,
+            gridStartDateTime,
             gridDurationMilliseconds,
             timelineConfig
           )
@@ -104,13 +117,15 @@ export const getGridData = (
       endX: event.endDateTime
         ? getX(
             event.endDateTime,
-            minDateEdge,
+            gridStartDateTime,
             gridDurationMilliseconds,
             timelineConfig
           )
         : undefined,
     };
   });
+
+  console.log("clientEvents", clientEvents);
 
   const tickStepMilliseconds =
     gridDurationMilliseconds / timelineConfig.tickDensity;
@@ -121,7 +136,7 @@ export const getGridData = (
       const x = (i / 10) * timelineConfig.gridWidth;
       return {
         x,
-        label: minDateEdge
+        label: gridStartDateTime
           .plus({ milliseconds: tickStepMilliseconds * i })
           .toFormat("yyyy-MM-dd HH:mm:ss"),
       };
@@ -132,9 +147,9 @@ export const getGridData = (
     clientEvents,
     eventsDurationMilliseconds,
     gridDurationMilliseconds,
-    maxDateEdge,
+    gridEndDateTime,
     maxDateTime,
-    minDateEdge,
+    gridStartDateTime,
     minDateTime,
     ticks,
   };
@@ -142,12 +157,13 @@ export const getGridData = (
 
 const getX = (
   dateTime: DateTime,
-  minDateEdge: DateTime,
+  gridStartDateTime: DateTime,
   gridDurationMilliseconds: number,
   timelineConfig: TimelineConfig
 ) => {
   return (
-    (dateTime.diff(minDateEdge).as("milliseconds") / gridDurationMilliseconds) *
+    (dateTime.diff(gridStartDateTime).as("milliseconds") /
+      gridDurationMilliseconds) *
     timelineConfig.gridWidth
   );
 };
