@@ -1,5 +1,10 @@
 import { DateTime, DateTimeOptions } from "luxon";
-import { parseDateTime } from "shapes";
+import {
+  MILLISECONDS_IN_DECADE,
+  MILLISECONDS_IN_MONTH,
+  MILLISECONDS_IN_YEAR,
+  parseDateTime,
+} from "shapes";
 import {
   ClientTimelineEvent,
   TimelineEventData,
@@ -138,7 +143,15 @@ export const getGridData = (
         x,
         label: gridStartDateTime
           .plus({ milliseconds: tickStepMilliseconds * i })
-          .toFormat("yyyy-MM-dd HH:mm:ss"),
+          .toFormat(
+            gridDurationMilliseconds > MILLISECONDS_IN_DECADE
+              ? "yyyy"
+              : gridDurationMilliseconds > MILLISECONDS_IN_YEAR
+              ? "yyyy-MM"
+              : gridDurationMilliseconds > MILLISECONDS_IN_MONTH
+              ? "yyyy-MM-dd"
+              : "yyyy-MM-dd HH:mm:ss"
+          ),
       };
     }
   );

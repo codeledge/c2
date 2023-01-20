@@ -9,75 +9,125 @@ export default {
 
 export const SingleRow = () => {
   return (
-    <SvgContainer>
-      <Timeline
-        rows={[
-          {
-            name: "Row 1",
-            events: [
-              {
-                name: "Event 1",
-                date: "2021-01-01",
-              },
-            ],
-          },
-        ]}
-      />
-    </SvgContainer>
+    <Timeline
+      rows={[
+        {
+          name: "Row 1",
+          events: [
+            {
+              name: "Event 1",
+              date: "2021-01-01",
+            },
+          ],
+        },
+      ]}
+    />
   );
 };
 
 export const MultiRow = () => {
   return (
-    <SvgContainer>
-      <Timeline
-        rows={[
-          {
-            name: "Row 1",
-            events: [
-              {
-                name: "Event 1",
-                date: "2021-01-01",
-              },
-            ],
-          },
-          {
-            name: "Row 2",
-            events: [
-              {
-                name: "Event 1",
-                date: "2022-01-01",
-              },
-              {
-                name: "Duration event",
-                startDate: "2021-03-18",
-                endDate: "2021-05-22",
-              },
-            ],
-          },
-          {
-            name: "Row 3",
-            events: [
-              {
-                name: "Event 1",
-                date: "2021-08-01",
-              },
-            ],
-          },
-          {
-            name: "Row 4",
-            events: [
-              {
-                name: "Event 1",
-                date: "2022-07-01",
-              },
-            ],
-          },
-        ]}
-        onEventClick={(event) => {
-          console.log(event);
-        }}
-      />
-    </SvgContainer>
+    <Timeline
+      rows={[
+        {
+          name: "Row 1",
+          events: [
+            {
+              name: "Event 1",
+              date: "2021-01-01",
+            },
+          ],
+        },
+        {
+          name: "Row 2",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-01-01",
+            },
+            {
+              name: "Duration event",
+              startDate: "2021-03-18",
+              endDate: "2021-05-22",
+            },
+          ],
+        },
+        {
+          name: "Row 3",
+          events: [
+            {
+              name: "Event 1",
+              date: "2021-08-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+        {
+          name: "Row 4",
+          events: [
+            {
+              name: "Event 1",
+              date: "2022-07-01",
+            },
+          ],
+        },
+      ]}
+      onEventClick={(event) => {
+        console.log(event);
+      }}
+    />
   );
 };
