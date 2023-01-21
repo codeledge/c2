@@ -1,7 +1,7 @@
 import { Meta } from "@storybook/react";
 import { SvgContainer } from "../helpers/SvgContainer";
 import { TimelineEvent } from "../../src/components/TimelineEvent";
-import { randomClientTimeline } from "../../fixtures/randomTimelineConfig";
+import { randomClientTimeline } from "../../fixtures/randomTimeline";
 import { parseDateTime } from "shapes";
 
 export default {

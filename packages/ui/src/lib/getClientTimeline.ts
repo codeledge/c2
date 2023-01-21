@@ -19,7 +19,8 @@ export const getClientTimeline = (
   const containerWidth = 1000;
   const containerHeight = 500;
 
-  const gridWidth = containerWidth - timelineConfig.rowDrawerWidth;
+  const gridWidth =
+    (containerWidth - timelineConfig.rowDrawerWidth) * timelineConfig.gridZoom;
 
   let minDateTime: DateTime | undefined;
   let maxDateTime: DateTime | undefined;
@@ -141,7 +142,7 @@ export const getClientTimeline = (
   const tickStepMilliseconds =
     gridDurationMilliseconds / timelineConfig.tickDensity;
 
-  const ticks = Array.from(
+  const clientTicks = Array.from(
     { length: timelineConfig.tickDensity + 1 },
     (_, i) => {
       const x = (i / 10) * gridWidth;
@@ -169,13 +170,14 @@ export const getClientTimeline = (
     width: containerWidth,
     height: containerHeight,
     clientEvents,
+    clientRows: rows,
     eventsDurationMilliseconds,
     gridDurationMilliseconds,
     gridEndDateTime,
     maxDateTime,
     gridStartDateTime,
     minDateTime,
-    ticks,
+    clientTicks,
   };
 };
 

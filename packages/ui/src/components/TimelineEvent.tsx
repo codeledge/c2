@@ -44,6 +44,7 @@ export const TimelineEvent = ({
     >
       {event.name && (
         <text
+          filter="url(#labelBackground)"
           dy={-eventNameFontSize + 1}
           textAnchor="middle"
           fontFamily="helvetica"
@@ -60,9 +61,9 @@ export const TimelineEvent = ({
             { x: event.endX - event.x, y: 0 },
             eventCircleRadius
           )}
-          fill="none"
+          fill={clientTimeline.backgroundColor}
           stroke={clientTimeline.primaryColor}
-          strokeWidth="3"
+          strokeWidth={clientTimeline.eventStrokeWidth}
           {...props}
         />
       ) : (
@@ -70,13 +71,14 @@ export const TimelineEvent = ({
           cx={0}
           cy={0}
           r={eventCircleRadius}
-          fill="lightgrey"
-          stroke="grey"
-          strokeWidth="3"
+          fill={clientTimeline.backgroundColor}
+          stroke={clientTimeline.primaryColor}
+          strokeWidth={clientTimeline.eventStrokeWidth}
           {...props}
         />
       )}
       <text
+        filter="url(#labelBackground)"
         dy={eventCircleRadius + eventDateFontSize + 2}
         textAnchor="middle"
         fontFamily="helvetica"
@@ -85,9 +87,9 @@ export const TimelineEvent = ({
       >
         {event.startDateTime && event.endDateTime
           ? `${event.startDateTime?.toFormat(
-              "yyyy-MM-dd HH:mm:ss"
-            )} - ${event.endDateTime?.toFormat("yyyy-MM-dd HH:mm:ss")}`
-          : event.dateTime?.toFormat("yyyy-MM-dd HH:mm:ss")}
+              clientTimeline.eventDateFormat
+            )} - ${event.endDateTime?.toFormat(clientTimeline.eventDateFormat)}`
+          : event.dateTime?.toFormat(clientTimeline.eventDateFormat)}
       </text>
     </g>
   );
