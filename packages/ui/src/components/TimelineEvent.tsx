@@ -1,9 +1,10 @@
 import { DateTime } from "luxon";
-import { TimelineConfig } from "../layouts/Timeline";
+import { ClientTimeline } from "../layouts/Timeline";
 import { getElongatedCirclePathD } from "shapes";
 
 export type TimelineEventData = {
-  name: string;
+  id?: string | number;
+  name?: string;
   date?: string | Date;
   startDate?: string | Date;
   endDate?: string | Date;
@@ -22,7 +23,7 @@ export type ClientTimelineEvent = TimelineEventData & {
 export type TimelineEventProps = {
   event: ClientTimelineEvent;
   onEventClick?: (event: TimelineEventData) => void;
-  timelineConfig: TimelineConfig;
+  clientTimeline: ClientTimeline;
 } & React.SVGProps<SVGCircleElement>;
 
 const eventCircleRadius = 5;
@@ -32,7 +33,7 @@ const eventNameFontSize = 13;
 export const TimelineEvent = ({
   event,
   onEventClick,
-  timelineConfig,
+  clientTimeline,
   ...props
 }: TimelineEventProps) => {
   return (
@@ -41,15 +42,17 @@ export const TimelineEvent = ({
       onClick={onEventClick ? () => onEventClick(event) : undefined}
       cursor={onEventClick ? "pointer" : undefined}
     >
-      <text
-        dy={-eventNameFontSize + 1}
-        textAnchor="middle"
-        fontFamily="helvetica"
-        color={timelineConfig.primaryColor}
-        fontSize={eventNameFontSize}
-      >
-        {event.name}
-      </text>
+      {event.name && (
+        <text
+          dy={-eventNameFontSize + 1}
+          textAnchor="middle"
+          fontFamily="helvetica"
+          color={clientTimeline.primaryColor}
+          fontSize={eventNameFontSize}
+        >
+          {event.name}
+        </text>
+      )}
       {event.startX && event.endX ? (
         <path
           d={getElongatedCirclePathD(
@@ -58,7 +61,7 @@ export const TimelineEvent = ({
             eventCircleRadius
           )}
           fill="none"
-          stroke={timelineConfig.primaryColor}
+          stroke={clientTimeline.primaryColor}
           strokeWidth="3"
           {...props}
         />
@@ -77,7 +80,7 @@ export const TimelineEvent = ({
         dy={eventCircleRadius + eventDateFontSize + 2}
         textAnchor="middle"
         fontFamily="helvetica"
-        color={timelineConfig.primaryColor}
+        color={clientTimeline.primaryColor}
         fontSize={12}
       >
         {event.startDateTime && event.endDateTime

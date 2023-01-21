@@ -1,20 +1,26 @@
-import { DateTime, DateTimeOptions } from "luxon";
+import { DateTime } from "luxon";
 import {
-  MILLISECONDS_IN_DECADE,
-  MILLISECONDS_IN_MONTH,
-  MILLISECONDS_IN_YEAR,
   parseDateTime,
+  MILLISECONDS_IN_DECADE,
+  MILLISECONDS_IN_YEAR,
+  MILLISECONDS_IN_MONTH,
 } from "shapes";
+import { ClientTimelineEvent } from "../components/TimelineEvent";
 import {
-  ClientTimelineEvent,
-  TimelineEventData,
-} from "../components/TimelineEvent";
-import { TimelineConfig, TimelineRow } from "../layouts/Timeline";
+  TimelineConfig,
+  TimelineRow,
+  ClientTimeline,
+} from "../layouts/Timeline";
 
-export const getGridData = (
-  rows: TimelineRow[],
-  timelineConfig: TimelineConfig
-) => {
+export const getClientTimeline = (
+  timelineConfig: TimelineConfig,
+  rows: TimelineRow[]
+): ClientTimeline => {
+  const containerWidth = 1000;
+  const containerHeight = 500;
+
+  const gridWidth = containerWidth - timelineConfig.rowDrawerWidth;
+
   let minDateTime: DateTime | undefined;
   let maxDateTime: DateTime | undefined;
 
@@ -109,14 +115,14 @@ export const getGridData = (
         event.dateTime,
         gridStartDateTime,
         gridDurationMilliseconds,
-        timelineConfig
+        gridWidth
       ),
       startX: event.startDateTime
         ? getX(
             event.startDateTime,
             gridStartDateTime,
             gridDurationMilliseconds,
-            timelineConfig
+            gridWidth
           )
         : undefined,
       endX: event.endDateTime
@@ -124,7 +130,7 @@ export const getGridData = (
             event.endDateTime,
             gridStartDateTime,
             gridDurationMilliseconds,
-            timelineConfig
+            gridWidth
           )
         : undefined,
     };
@@ -138,7 +144,7 @@ export const getGridData = (
   const ticks = Array.from(
     { length: timelineConfig.tickDensity + 1 },
     (_, i) => {
-      const x = (i / 10) * timelineConfig.gridWidth;
+      const x = (i / 10) * gridWidth;
       return {
         x,
         label: gridStartDateTime
@@ -157,6 +163,11 @@ export const getGridData = (
   );
 
   return {
+    ...timelineConfig,
+    gridHeight: timelineConfig.rowHeight * rows.length,
+    gridWidth,
+    width: containerWidth,
+    height: containerHeight,
     clientEvents,
     eventsDurationMilliseconds,
     gridDurationMilliseconds,
@@ -172,11 +183,11 @@ const getX = (
   dateTime: DateTime,
   gridStartDateTime: DateTime,
   gridDurationMilliseconds: number,
-  timelineConfig: TimelineConfig
+  gridWidth: number
 ) => {
   return (
     (dateTime.diff(gridStartDateTime).as("milliseconds") /
       gridDurationMilliseconds) *
-    timelineConfig.gridWidth
+    gridWidth
   );
 };

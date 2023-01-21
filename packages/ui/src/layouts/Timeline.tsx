@@ -1,12 +1,13 @@
 import { DateTime } from "luxon";
 import { ReactNode } from "react";
-import { parseDateTime } from "shapes";
 import {
   TimelineEvent,
   TimelineEventProps,
   TimelineEventData,
+  ClientTimelineEvent,
 } from "../components/TimelineEvent";
-import { getGridData } from "../lib/getGridData";
+import { TimelineTick } from "../components/TimelineTick";
+import { getClientTimeline } from "../lib/getClientTimeline";
 
 export type TimelineRow = {
   id?: string;
@@ -23,55 +24,60 @@ export type TimelineProps = {
 
 export type TimelineConfig = {
   backgroundColor: string;
-  gridHeight: number;
-  gridWidth: number;
-  height: number;
+  gridZoom: number;
   primaryColor: string;
   rowDrawerWidth: number;
   rowHeight: number;
   secondaryColor: string;
   tickDensity: number;
   ticksHeight: number;
+};
+
+export type ClientTimeline = TimelineConfig & {
+  gridHeight: number;
+  gridWidth: number;
+  height: number;
   width: number;
+  clientEvents: ClientTimelineEvent[];
+  eventsDurationMilliseconds: number;
+  gridDurationMilliseconds: number;
+  gridEndDateTime: DateTime;
+  maxDateTime?: DateTime;
+  gridStartDateTime: DateTime;
+  minDateTime?: DateTime;
+  ticks: TimelineTick[];
+};
+
+export const defaultTimelineConfig: TimelineConfig = {
+  backgroundColor: "lightGrey",
+  gridZoom: 1,
+  primaryColor: "grey",
+  rowDrawerWidth: 150,
+  rowHeight: 50,
+  secondaryColor: "grey",
+  tickDensity: 10,
+  ticksHeight: 30,
 };
 
 export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
-  const rowHeight = options?.rowHeight ?? 50;
-  const rowDrawerWidth = options?.rowDrawerWidth ?? 150;
-  const height = options?.height ?? 400;
-  const width = options?.width ?? 800;
   const timelineConfig: TimelineConfig = {
-    backgroundColor: "lightGrey",
-    gridHeight: rowHeight * rows.length,
-    gridWidth: width + rowDrawerWidth,
-    height,
-    primaryColor: "grey",
-    rowDrawerWidth,
-    rowHeight,
-    secondaryColor: "grey",
-    tickDensity: 10,
-    ticksHeight: 30,
-    width,
+    ...defaultTimelineConfig,
+    ...options,
   };
-  ///////////////////////
 
-  const getRowTopY = (rowIndex: number) => {
-    return rowHeight * rowIndex;
-  };
+  const clientTimeline = getClientTimeline(timelineConfig, rows);
 
   const getRowBottomY = (rowIndex: number) => {
-    return getRowTopY(rowIndex) + rowHeight;
+    return clientTimeline.rowHeight * rowIndex + clientTimeline.rowHeight;
   };
-
-  const { clientEvents, ticks } = getGridData(rows, timelineConfig);
 
   return (
     <div
       style={{
-        backgroundColor: timelineConfig.backgroundColor,
+        backgroundColor: clientTimeline.backgroundColor,
         position: "relative",
-        height: timelineConfig.height,
-        width: timelineConfig.width,
+        height: clientTimeline.height,
+        width: clientTimeline.width,
       }}
     >
       <div
@@ -90,8 +96,8 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
         style={{
           overflow: "auto",
           position: "relative",
-          height: timelineConfig.height,
-          width: timelineConfig.width,
+          height: clientTimeline.height,
+          width: clientTimeline.width,
         }}
       >
         <div
@@ -99,21 +105,21 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
           style={{
             position: "sticky",
             top: 0,
-            paddingLeft: timelineConfig.rowDrawerWidth,
-            background: timelineConfig.backgroundColor,
-            height: timelineConfig.ticksHeight,
-            width: timelineConfig.gridWidth,
+            paddingLeft: clientTimeline.rowDrawerWidth,
+            background: clientTimeline.backgroundColor,
+            height: clientTimeline.ticksHeight,
+            width: clientTimeline.gridWidth,
           }}
         >
           <svg
-            width={timelineConfig.gridWidth}
-            height={timelineConfig.ticksHeight}
+            width={clientTimeline.gridWidth}
+            height={clientTimeline.ticksHeight}
           >
             <g
               id="ticks"
-              transform={`translate(0 ${timelineConfig.ticksHeight})`}
+              transform={`translate(0 ${clientTimeline.ticksHeight})`}
             >
-              {ticks.map((tick) => {
+              {clientTimeline.ticks.map((tick) => {
                 return (
                   <g key={tick.x}>
                     <text
@@ -121,7 +127,7 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
                       y={-10}
                       fontSize={9}
                       textAnchor="middle"
-                      fill={timelineConfig.primaryColor}
+                      fill={clientTimeline.primaryColor}
                     >
                       {tick.label}
                     </text>
@@ -130,7 +136,7 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
                       y1={0}
                       x2={tick.x}
                       y2={-5}
-                      stroke={timelineConfig.primaryColor}
+                      stroke={clientTimeline.primaryColor}
                     />
                   </g>
                 );
@@ -138,10 +144,10 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
               <line
                 className="tickerBottom"
                 x1={0}
-                x2={timelineConfig.gridWidth}
+                x2={clientTimeline.gridWidth}
                 y1={0}
                 y2={0}
-                stroke={timelineConfig.primaryColor}
+                stroke={clientTimeline.primaryColor}
                 strokeWidth={1}
               />
             </g>
@@ -157,9 +163,9 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
             style={{
               position: "sticky",
               left: 0,
-              flex: `0 0 ${timelineConfig.rowDrawerWidth}px`,
-              background: timelineConfig.backgroundColor,
-              borderRight: `1px solid ${timelineConfig.primaryColor}`,
+              flex: `0 0 ${clientTimeline.rowDrawerWidth}px`,
+              background: clientTimeline.backgroundColor,
+              borderRight: `1px solid ${clientTimeline.primaryColor}`,
               boxSizing: "border-box",
             }}
           >
@@ -167,7 +173,7 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
               return (
                 <div
                   style={{
-                    height: timelineConfig.rowHeight,
+                    height: clientTimeline.rowHeight,
                     width: "100%",
                   }}
                 >
@@ -187,13 +193,13 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
             })}
           </div>
           <svg
-            width={timelineConfig.gridWidth}
-            height={timelineConfig.gridHeight}
+            width={clientTimeline.gridWidth}
+            height={clientTimeline.gridHeight}
             style={{
-              flex: `0 0 ${timelineConfig.gridWidth}px`,
+              flex: `0 0 ${clientTimeline.gridWidth}px`,
             }}
           >
-            {ticks.slice(1).map((tick) => {
+            {clientTimeline.ticks.slice(1).map((tick) => {
               return (
                 <g key={tick.x}>
                   <line
@@ -201,8 +207,8 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
                     x1={tick.x}
                     x2={tick.x}
                     y1={0}
-                    y2={timelineConfig.gridHeight}
-                    stroke={timelineConfig.primaryColor}
+                    y2={clientTimeline.gridHeight}
+                    stroke={clientTimeline.primaryColor}
                     strokeWidth={1}
                     strokeDasharray="5,5"
                   ></line>
@@ -214,29 +220,29 @@ export const Timeline = ({ rows, options, onEventClick }: TimelineProps) => {
                 <line
                   className="timelineGridRowBottomLine"
                   x1={0}
-                  x2={timelineConfig.gridWidth}
+                  x2={clientTimeline.gridWidth}
                   y1={getRowBottomY(rowIndex)}
                   y2={getRowBottomY(rowIndex)}
-                  stroke={timelineConfig.primaryColor}
+                  stroke={clientTimeline.primaryColor}
                   strokeWidth={1}
                 />
               );
             })}
             <line
               className="timelineGridEdgeRight"
-              x1={timelineConfig.gridWidth}
-              x2={timelineConfig.gridWidth}
+              x1={clientTimeline.gridWidth}
+              x2={clientTimeline.gridWidth}
               y1={0}
-              y2={timelineConfig.gridHeight}
-              stroke={timelineConfig.primaryColor}
+              y2={clientTimeline.gridHeight}
+              stroke={clientTimeline.primaryColor}
               strokeWidth={1}
             ></line>
-            {clientEvents.map((event) => {
+            {clientTimeline.clientEvents.map((event) => {
               return (
                 <TimelineEvent
                   onEventClick={onEventClick}
                   event={event}
-                  timelineConfig={timelineConfig}
+                  clientTimeline={clientTimeline}
                 />
               );
             })}
