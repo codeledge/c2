@@ -22,7 +22,11 @@ export type ClientTimelineEvent = TimelineEventData & {
 
 export type TimelineEventProps = {
   event: ClientTimelineEvent;
+  focusedEvent?: ClientTimelineEvent;
   onEventClick?: (event: TimelineEventData) => void;
+  setFocusedEvent?: React.Dispatch<
+    React.SetStateAction<ClientTimelineEvent | undefined>
+  >;
   clientTimeline: ClientTimeline;
 } & React.SVGProps<SVGCircleElement>;
 
@@ -34,13 +38,24 @@ export const TimelineEvent = ({
   event,
   onEventClick,
   clientTimeline,
+  setFocusedEvent,
+  focusedEvent,
   ...props
 }: TimelineEventProps) => {
   return (
     <g
       transform={`translate(${event.x},${event.y})`}
+      style={{
+        opacity: focusedEvent?.id ? 0.2 : 1,
+      }}
       onClick={onEventClick ? () => onEventClick(event) : undefined}
       cursor={onEventClick ? "pointer" : undefined}
+      onMouseEnter={() => {
+        setFocusedEvent?.(event);
+      }}
+      onMouseLeave={() => {
+        setFocusedEvent?.(undefined);
+      }}
     >
       {event.name && (
         <text

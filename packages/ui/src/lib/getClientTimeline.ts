@@ -14,11 +14,10 @@ import {
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
-  rows: TimelineRow[]
+  rows: TimelineRow[],
+  containerWidth: number,
+  containerHeight: number
 ): ClientTimeline => {
-  const containerWidth = 1000;
-  const containerHeight = 500;
-
   const gridWidth =
     (containerWidth - timelineConfig.rowDrawerWidth) * timelineConfig.gridZoom;
 
@@ -44,9 +43,6 @@ export const getClientTimeline = (
                 endDateTime.diff(startDateTime).as("milliseconds") / 2,
             });
           }
-          if (!dateTime && !startDateTime && endDateTime) {
-            dateTime = startDateTime;
-          }
 
           if (!minDateTime) {
             minDateTime = startDateTime || dateTime;
@@ -61,11 +57,9 @@ export const getClientTimeline = (
           if (startDateTime && startDateTime < minDateTime!) {
             minDateTime = startDateTime;
           }
-
           if (dateTime && dateTime > maxDateTime!) {
             maxDateTime = dateTime;
           }
-
           if (endDateTime && endDateTime > maxDateTime!) {
             maxDateTime = endDateTime;
           }
@@ -136,6 +130,12 @@ export const getClientTimeline = (
         : undefined,
     };
   });
+
+  clientEvents.sort((a, b) =>
+    (a.startDateTime || a.dateTime!)
+      .diff(b.startDateTime || b.dateTime!)
+      .as("milliseconds")
+  );
 
   console.log("clientEvents", clientEvents);
 
