@@ -8,19 +8,14 @@ import {
   ClientTimelineEvent,
 } from "../components/TimelineEvent";
 import { TimelineGridTicks } from "../components/TimelineGridTicks";
+import { ClientTimelineGroup } from "../components/TimelineGroup";
 import { TimelineRowDrawer } from "../components/TimelineRowDrawer";
 import { ClientTimelineTick, TimelineTick } from "../components/TimelineTick";
 import { TimelineTickBar } from "../components/TimelineTickBar";
 import { getClientTimeline } from "../lib/getClientTimeline";
 
-export type TimelineRow = {
-  id?: string | number;
-  name?: string;
-  events: TimelineEventData[];
-};
-
 export type TimelineProps = {
-  rows: TimelineRow[];
+  events: TimelineEventData[];
   title?: ReactNode;
   height?: number | string;
   width?: number | string;
@@ -30,16 +25,17 @@ export type TimelineProps = {
 
 export type TimelineConfig = {
   backgroundColor: string;
+  eventDateFormat: string;
+  eventStrokeWidth: number;
+  gridMarginRight: number;
   gridZoom: number;
+  groupBy?: string;
   primaryColor: string;
   rowDrawerWidth: number;
   rowHeight: number;
   secondaryColor: string;
   tickDensity: number;
   ticksHeight: number;
-  eventDateFormat: string;
-  eventStrokeWidth: number;
-  gridMarginRight: number;
 };
 
 export type ClientTimeline = TimelineConfig & {
@@ -48,7 +44,7 @@ export type ClientTimeline = TimelineConfig & {
   height: number;
   width: number;
   clientEvents: ClientTimelineEvent[];
-  clientRows: TimelineRow[];
+  clientGroups: ClientTimelineGroup[];
   eventsDurationMilliseconds: number;
   gridDurationMilliseconds: number;
   gridEndDateTime: DateTime;
@@ -65,7 +61,7 @@ export const defaultTimelineConfig: TimelineConfig = {
   rowDrawerWidth: 150,
   rowHeight: 50,
   secondaryColor: "grey",
-  tickDensity: 10,
+  tickDensity: 100,
   ticksHeight: 30,
   eventDateFormat: "yyyy-MM-dd HH:mm",
   eventStrokeWidth: 2,
@@ -73,7 +69,7 @@ export const defaultTimelineConfig: TimelineConfig = {
 };
 
 export const Timeline = ({
-  rows,
+  events,
   options,
   height = 500,
   width = "100%",
@@ -117,7 +113,7 @@ export const Timeline = ({
         </button>
       </div>
       <TimelineCanvas
-        rows={rows}
+        events={events}
         timelineConfig={timelineConfig}
         onEventClick={onEventClick}
         setZoom={setZoom}
@@ -129,7 +125,7 @@ export const Timeline = ({
 };
 
 export const TimelineCanvas = ({
-  rows,
+  events,
   timelineConfig,
   setZoom,
   height,
@@ -141,7 +137,12 @@ export const TimelineCanvas = ({
   timelineConfig: TimelineConfig;
   setZoom: any;
 }) => {
-  const clientTimeline = getClientTimeline(timelineConfig, rows, width, height);
+  const clientTimeline = getClientTimeline(
+    timelineConfig,
+    events,
+    width,
+    height
+  );
   const [focusedEvent, setFocusedEvent] = useState<ClientTimelineEvent>();
 
   const getRowBottomY = (rowIndex: number) => {
@@ -207,14 +208,14 @@ export const TimelineCanvas = ({
               </filter>
             </defs>
             <TimelineGridTicks clientTimeline={clientTimeline} />
-            {rows.map((row, rowIndex) => {
+            {clientTimeline.clientGroups.map((group, groupIndex) => {
               return (
                 <line
                   className="timelineGridRowBottomLine"
                   x1={0}
                   x2={clientTimeline.gridWidth}
-                  y1={getRowBottomY(rowIndex)}
-                  y2={getRowBottomY(rowIndex)}
+                  y1={getRowBottomY(groupIndex)}
+                  y2={getRowBottomY(groupIndex)}
                   stroke={clientTimeline.primaryColor}
                   strokeWidth={1}
                 />
@@ -228,7 +229,7 @@ export const TimelineCanvas = ({
               y2={clientTimeline.gridHeight}
               stroke={clientTimeline.primaryColor}
               strokeWidth={1}
-            ></line>
+            />
             {clientTimeline.clientEvents.map((event) => {
               return (
                 <TimelineEvent

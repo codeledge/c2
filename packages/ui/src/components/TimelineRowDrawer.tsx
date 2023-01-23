@@ -16,10 +16,10 @@ export const TimelineRowDrawer = ({
         boxSizing: "border-box",
       }}
     >
-      {clientTimeline.clientRows.map((row) => {
+      {clientTimeline.clientGroups.map((group) => {
         return (
           <div
-            key={row.id}
+            key={group.name}
             style={{
               height: clientTimeline.rowHeight,
               width: "100%",
@@ -34,7 +34,7 @@ export const TimelineRowDrawer = ({
                 paddingRight: 10,
               }}
             >
-              <p style={{ textAlign: "right" }}>{row.name}</p>
+              <p style={{ textAlign: "right" }}>{group.name}</p>
             </div>
           </div>
         );

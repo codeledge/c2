@@ -8,6 +8,7 @@ export type TimelineEventData = {
   date?: string | Date;
   startDate?: string | Date;
   endDate?: string | Date;
+  [x: string]: any;
 };
 
 export type ClientTimelineEvent = TimelineEventData & {

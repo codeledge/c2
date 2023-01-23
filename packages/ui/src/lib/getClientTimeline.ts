@@ -5,16 +5,15 @@ import {
   MILLISECONDS_IN_YEAR,
   MILLISECONDS_IN_MONTH,
 } from "shapes";
-import { ClientTimelineEvent } from "../components/TimelineEvent";
 import {
-  TimelineConfig,
-  TimelineRow,
-  ClientTimeline,
-} from "../layouts/Timeline";
+  ClientTimelineEvent,
+  TimelineEventData,
+} from "../components/TimelineEvent";
+import { TimelineConfig, ClientTimeline } from "../layouts/Timeline";
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
-  rows: TimelineRow[],
+  events: TimelineEventData[],
   containerWidth: number,
   containerHeight: number
 ): ClientTimeline => {
@@ -24,78 +23,91 @@ export const getClientTimeline = (
   let minDateTime: DateTime | undefined;
   let maxDateTime: DateTime | undefined;
 
-  let clientEvents = rows.reduce(
-    (events: ClientTimelineEvent[], row, rowIndex) => {
-      const rowEvents = row.events.reduce(
-        (events: ClientTimelineEvent[], event) => {
-          if (!event.date && !(event.startDate && event.endDate)) {
-            console.log("skipped event", event);
-            return events;
-          }
+  const groupMap: Record<string, { name: string; index: number }> = {};
 
-          let dateTime = parseDateTime(event.date);
-          const startDateTime = parseDateTime(event.startDate);
-          const endDateTime = parseDateTime(event.endDate);
+  let clientEvents = events.reduce((events: ClientTimelineEvent[], event) => {
+    if (!event.date && !(event.startDate && event.endDate)) {
+      console.log("skipped event", event);
+      return events;
+    }
 
-          if (!dateTime && startDateTime && endDateTime) {
-            dateTime = endDateTime.minus({
-              milliseconds:
-                endDateTime.diff(startDateTime).as("milliseconds") / 2,
-            });
-          }
+    let dateTime = parseDateTime(event.date);
+    const startDateTime = parseDateTime(event.startDate);
+    const endDateTime = parseDateTime(event.endDate);
 
-          if (!minDateTime) {
-            minDateTime = startDateTime || dateTime;
-          }
-          if (!maxDateTime) {
-            maxDateTime = dateTime || endDateTime;
-          }
+    if (!dateTime && startDateTime && endDateTime) {
+      dateTime = endDateTime.minus({
+        milliseconds: endDateTime.diff(startDateTime).as("milliseconds") / 2,
+      });
+    }
 
-          if (dateTime && dateTime < minDateTime!) {
-            minDateTime = dateTime;
-          }
-          if (startDateTime && startDateTime < minDateTime!) {
-            minDateTime = startDateTime;
-          }
-          if (dateTime && dateTime > maxDateTime!) {
-            maxDateTime = dateTime;
-          }
-          if (endDateTime && endDateTime > maxDateTime!) {
-            maxDateTime = endDateTime;
-          }
+    if (!minDateTime) {
+      minDateTime = startDateTime || dateTime;
+    }
+    if (!maxDateTime) {
+      maxDateTime = dateTime || endDateTime;
+    }
 
-          return events.concat({
-            ...event,
-            x: -1, // since required
-            y:
-              rowIndex * timelineConfig.rowHeight +
-              timelineConfig.rowHeight / 2,
-            dateTime: dateTime!,
-            startDateTime,
-            endDateTime,
-          });
-        },
-        []
-      );
+    if (dateTime && dateTime < minDateTime!) {
+      minDateTime = dateTime;
+    }
+    if (startDateTime && startDateTime < minDateTime!) {
+      minDateTime = startDateTime;
+    }
+    if (dateTime && dateTime > maxDateTime!) {
+      maxDateTime = dateTime;
+    }
+    if (endDateTime && endDateTime > maxDateTime!) {
+      maxDateTime = endDateTime;
+    }
 
-      return events.concat(rowEvents);
-    },
-    []
-  );
+    let groupIndex = 0;
+    if (timelineConfig.groupBy) {
+      const groupKey = event[timelineConfig.groupBy] as string;
+
+      if (!groupMap[groupKey]) {
+        groupIndex = Object.keys(groupMap).length;
+        groupMap[groupKey] = {
+          name: groupKey,
+          index: groupIndex,
+        };
+      } else {
+        groupIndex = groupMap[groupKey].index;
+      }
+    } else {
+      groupIndex = 0;
+
+      groupMap[""] = {
+        name: "Ungrouped",
+        index: groupIndex,
+      };
+    }
+
+    return events.concat({
+      ...event,
+      x: -1, // since required
+      y: groupIndex * timelineConfig.rowHeight + timelineConfig.rowHeight / 2,
+      dateTime: dateTime!,
+      startDateTime,
+      endDateTime,
+    });
+  }, []);
 
   // todo throw error on no { minDateTime, maxDateTime }
 
-  console.log({ minDateTime, maxDateTime });
+  console.log({ minDateTime, maxDateTime, groupMap });
 
   const eventsDurationMilliseconds =
     maxDateTime!.diff(minDateTime!).as("milliseconds") || 10000000; //if only one event, make it something, what though?
 
-  const gridStartDateTime = minDateTime!.minus({
-    milliseconds: eventsDurationMilliseconds / 10,
-  });
-  const gridEndDateTime = maxDateTime!.plus({
-    milliseconds: eventsDurationMilliseconds / 10,
-  });
+  const gridResolution = getGridResolution(eventsDurationMilliseconds);
+
+  const gridStartDateTime = minDateTime!.startOf(
+    gridResolutionToDuration(gridResolution)
+  );
+  const gridEndDateTime = maxDateTime!.endOf(
+    gridResolutionToDuration(gridResolution)
+  );
 
   const gridDurationMilliseconds = gridEndDateTime!
     .diff(gridStartDateTime!)
@@ -106,14 +118,14 @@ export const getClientTimeline = (
   clientEvents = clientEvents.map((event) => {
     return {
       ...event,
-      x: getX(
+      x: getGridPositonX(
         event.dateTime,
         gridStartDateTime,
         gridDurationMilliseconds,
         gridWidth
       ),
       startX: event.startDateTime
-        ? getX(
+        ? getGridPositonX(
             event.startDateTime,
             gridStartDateTime,
             gridDurationMilliseconds,
@@ -121,7 +133,7 @@ export const getClientTimeline = (
           )
         : undefined,
       endX: event.endDateTime
-        ? getX(
+        ? getGridPositonX(
             event.endDateTime,
             gridStartDateTime,
             gridDurationMilliseconds,
@@ -137,40 +149,30 @@ export const getClientTimeline = (
       .as("milliseconds")
   );
 
-  console.log("clientEvents", clientEvents);
+  // FINISH THIS
+  const contextualDiff = gridEndDateTime!.diff(gridStartDateTime!).as("years");
 
-  const tickStepMilliseconds =
-    gridDurationMilliseconds / timelineConfig.tickDensity;
+  const numberOfTicks = Math.ceil(gridWidth / timelineConfig.tickDensity);
 
-  const clientTicks = Array.from(
-    { length: timelineConfig.tickDensity + 1 },
-    (_, i) => {
-      const x = (i / 10) * gridWidth;
-      return {
-        x,
-        label: gridStartDateTime
-          .plus({ milliseconds: tickStepMilliseconds * i })
-          .toFormat(
-            gridDurationMilliseconds > MILLISECONDS_IN_DECADE
-              ? "yyyy"
-              : gridDurationMilliseconds > MILLISECONDS_IN_YEAR
-              ? "yyyy-MM"
-              : gridDurationMilliseconds > MILLISECONDS_IN_MONTH
-              ? "yyyy-MM-dd"
-              : "yyyy-MM-dd HH:mm:ss"
-          ),
-      };
-    }
-  );
+  const clientTicks = Array.from({ length: numberOfTicks + 1 }, (_, i) => {
+    const x = (i / numberOfTicks) * gridWidth;
+    const tickDateMilliseconds = (i / numberOfTicks) * gridDurationMilliseconds;
+    return {
+      x,
+      label: gridStartDateTime
+        .plus({ milliseconds: tickDateMilliseconds })
+        .toFormat(gridResolutionToFormat(gridResolution)),
+    };
+  });
 
   return {
     ...timelineConfig,
-    gridHeight: timelineConfig.rowHeight * rows.length,
+    gridHeight: timelineConfig.rowHeight * Object.keys(groupMap).length,
     gridWidth,
     width: containerWidth,
     height: containerHeight,
     clientEvents,
-    clientRows: rows,
+    clientGroups: Object.values(groupMap),
     eventsDurationMilliseconds,
     gridDurationMilliseconds,
     gridEndDateTime,
@@ -181,7 +183,46 @@ export const getClientTimeline = (
   };
 };
 
-const getX = (
+enum GridStep {
+  DECADE = "DECADE",
+  YEAR = "YEAR",
+  MONTH = "MONTH",
+  DAY = "DAY",
+  HOUR = "HOUR",
+  MINUTE = "MINUTE",
+  SECOND = "SECOND",
+  MILLISECOND = "MILLISECOND",
+}
+
+const gridResolutionToDuration = (gridResolution: GridStep) => {
+  switch (gridResolution) {
+    case GridStep.YEAR:
+      return "year";
+    default:
+      return "minute";
+  }
+};
+
+const gridResolutionToFormat = (gridResolution: GridStep) => {
+  switch (gridResolution) {
+    case GridStep.YEAR:
+      return "yyyy";
+    default:
+      return "yyyy-MM-dd";
+  }
+};
+
+const getGridResolution = (eventsDurationMilliseconds: number) => {
+  return eventsDurationMilliseconds > MILLISECONDS_IN_DECADE
+    ? GridStep.YEAR
+    : eventsDurationMilliseconds > MILLISECONDS_IN_YEAR
+    ? GridStep.MONTH
+    : eventsDurationMilliseconds > MILLISECONDS_IN_MONTH
+    ? GridStep.DAY
+    : GridStep.HOUR;
+};
+
+const getGridPositonX = (
   dateTime: DateTime,
   gridStartDateTime: DateTime,
   gridDurationMilliseconds: number,

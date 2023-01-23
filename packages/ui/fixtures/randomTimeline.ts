@@ -1,8 +1,8 @@
+import { TimelineEventData } from "../src/components/TimelineEvent";
 import {
   ClientTimeline,
   defaultTimelineConfig,
   TimelineConfig,
-  TimelineRow,
 } from "../src/layouts/Timeline";
 import { getClientTimeline } from "../src/lib/getClientTimeline";
 import { isOdd } from "../src/lib/isOdd";
@@ -22,19 +22,16 @@ export const randomTimelineConfig = (
 
 export const randomClientTimeline = (
   values: Partial<TimelineConfig> = {},
-  data: TimelineRow[] = []
+  data: TimelineEventData[] = []
 ): ClientTimeline => {
-  return getClientTimeline(randomTimelineConfig(values), data);
+  return getClientTimeline(randomTimelineConfig(values), data, 1000, 1000);
 };
 
-export const randomTimelineData = (): TimelineRow[] => {
-  return Array.from({ length: randomInt() }, (_, index) => ({
+export const randomTimelineData = (): TimelineEventData[] => {
+  return Array.from({ length: randomInt(1, 10) }, (_, index) => ({
     id: index,
     name: randomName(),
-    events: Array.from({ length: randomInt(1, 10) }, (_, index) => ({
-      id: index,
-      name: randomName(),
-      ...(isOdd(index) ? { date: randomDate() } : randomDateRange()),
-    })),
+    city: randomName(),
+    ...(isOdd(index) ? { date: randomDate() } : randomDateRange()),
   }));
 };
