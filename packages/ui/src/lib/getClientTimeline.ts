@@ -100,14 +100,17 @@ export const getClientTimeline = (
   const eventsDurationMilliseconds =
     maxDateTime!.diff(minDateTime!).as("milliseconds") || 10000000; //if only one event, make it something, what though?
 
+  const gridDurationPaddingMilliseconds = eventsDurationMilliseconds * 0.1;
+
   const gridResolution = getGridResolution(eventsDurationMilliseconds);
 
-  const gridStartDateTime = minDateTime!.startOf(
-    gridResolutionToDuration(gridResolution)
-  );
-  const gridEndDateTime = maxDateTime!.endOf(
-    gridResolutionToDuration(gridResolution)
-  );
+  const gridStartDateTime = minDateTime!
+    .minus({ milliseconds: gridDurationPaddingMilliseconds })
+    .startOf(gridResolutionToDuration(gridResolution));
+
+  const gridEndDateTime = maxDateTime!
+    .plus({ milliseconds: gridDurationPaddingMilliseconds })
+    .endOf(gridResolutionToDuration(gridResolution));
 
   const gridDurationMilliseconds = gridEndDateTime!
     .diff(gridStartDateTime!)

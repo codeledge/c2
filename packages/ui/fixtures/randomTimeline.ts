@@ -28,7 +28,7 @@ export const randomClientTimeline = (
 };
 
 export const randomTimelineData = (): TimelineEventData[] => {
-  return Array.from({ length: randomInt(1, 10) }, (_, index) => ({
+  return Array.from({ length: randomInt(1, 100) }, (_, index) => ({
     id: index,
     name: randomName(),
     city: randomName(),

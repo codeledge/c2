@@ -57,6 +57,7 @@ export const TimelineEvent = ({
       onMouseLeave={() => {
         setFocusedEvent?.(undefined);
       }}
+      tabIndex={1}
     >
       {event.name && (
         <text

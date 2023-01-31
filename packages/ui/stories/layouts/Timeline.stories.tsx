@@ -63,7 +63,7 @@ export const Paintings = () => {
         eventDateFormat: "yyyy",
       }}
       height={600}
-      width={1200}
+      width={"100%"}
       events={paintings.map((event) => ({
         ...event,
         date: event.start,
