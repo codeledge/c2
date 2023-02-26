@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { getWaterPipePathD, Point, WaterPipePathOptions } from "shapes";
+import { getWaterPipePathD, Point, WaterPipePathOptions } from "@c2/core";
 
 export const WaterPipePath = ({
   options,

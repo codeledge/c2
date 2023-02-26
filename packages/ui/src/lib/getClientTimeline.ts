@@ -4,7 +4,7 @@ import {
   MILLISECONDS_IN_DECADE,
   MILLISECONDS_IN_YEAR,
   MILLISECONDS_IN_MONTH,
-} from "shapes";
+} from "@c2/core";
 import {
   ClientTimelineEvent,
   TimelineEventData,
