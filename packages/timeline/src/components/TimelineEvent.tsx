@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { ClientTimeline } from "../layouts/Timeline";
+import { ClientTimeline } from "../Timeline";
 import { getElongatedCirclePathD } from "@c2/core";
 
 export type TimelineEventData = {

@@ -1,4 +1,4 @@
-import { ClientTimeline } from "../layouts/Timeline";
+import { ClientTimeline } from "../Timeline";
 
 export type ClientTimelineTick = {
   x: number;

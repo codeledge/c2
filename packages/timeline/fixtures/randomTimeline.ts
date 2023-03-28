@@ -3,13 +3,16 @@ import {
   ClientTimeline,
   defaultTimelineConfig,
   TimelineConfig,
-} from "../src/layouts/Timeline";
+} from "../src/Timeline";
 import { getClientTimeline } from "../src/lib/getClientTimeline";
-import { isOdd } from "../src/lib/isOdd";
-import { randomArrayItem } from "./randomArrayItem";
-import { randomDate, randomDateRange } from "./randomDate";
-import { randomInt } from "./randomInt";
-import { randomName } from "./randomName";
+import {
+  isOdd,
+  randomInt,
+  randomName,
+  randomDate,
+  array,
+  randomDateRange,
+} from "deverything";
 
 export const randomTimelineConfig = (
   values: Partial<TimelineConfig> = {}
@@ -28,7 +31,7 @@ export const randomClientTimeline = (
 };
 
 export const randomTimelineData = (): TimelineEventData[] => {
-  return Array.from({ length: randomInt(1, 100) }, (_, index) => ({
+  return array(randomInt(1, 100), (_, index) => ({
     id: index,
     name: randomName(),
     city: randomName(),

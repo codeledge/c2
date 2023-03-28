@@ -1,4 +1,5 @@
 export * from "./parseDateTime";
+export * from "./randomDateTime";
 
 // values not tested
 export const MILLISECONDS_IN_DAY = 86400000;

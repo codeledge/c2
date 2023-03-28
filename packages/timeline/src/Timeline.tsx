@@ -6,13 +6,13 @@ import {
   TimelineEventProps,
   TimelineEventData,
   ClientTimelineEvent,
-} from "../components/TimelineEvent";
-import { TimelineGridTicks } from "../components/TimelineGridTicks";
-import { ClientTimelineGroup } from "../components/TimelineGroup";
-import { TimelineRowDrawer } from "../components/TimelineRowDrawer";
-import { ClientTimelineTick, TimelineTick } from "../components/TimelineTick";
-import { TimelineTickBar } from "../components/TimelineTickBar";
-import { getClientTimeline } from "../lib/getClientTimeline";
+} from "./components/TimelineEvent";
+import { TimelineGridTicks } from "./components/TimelineGridTicks";
+import { ClientTimelineGroup } from "./components/TimelineGroup";
+import { TimelineRowDrawer } from "./components/TimelineRowDrawer";
+import { ClientTimelineTick } from "./components/TimelineTick";
+import { TimelineTickBar } from "./components/TimelineTickBar";
+import { getClientTimeline } from "./lib/getClientTimeline";
 
 export type TimelineProps = {
   events: TimelineEventData[];

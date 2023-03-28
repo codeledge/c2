@@ -1,4 +1,4 @@
-import { ClientTimeline, TimelineRow } from "../layouts/Timeline";
+import { ClientTimeline } from "../Timeline";
 
 export const TimelineRowDrawer = ({
   clientTimeline,

@@ -1,4 +1,4 @@
-import { ClientTimeline } from "../layouts/Timeline";
+import { ClientTimeline } from "../Timeline";
 import { TimelineTick } from "./TimelineTick";
 
 export const TimelineTickBar = ({

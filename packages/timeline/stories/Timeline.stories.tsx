@@ -1,7 +1,7 @@
 import { Meta } from "@storybook/react";
-import { paintings } from "../../fixtures/paintings";
-import { randomTimelineData } from "../../fixtures/randomTimeline";
-import { Timeline } from "../../src/layouts/Timeline";
+import { paintings } from "../fixtures/paintings";
+import { randomTimelineData } from "../fixtures/randomTimeline";
+import { Timeline } from "../src/Timeline";
 
 export default {
   title: "Components/Timeline",

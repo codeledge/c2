@@ -9,7 +9,7 @@ import {
   ClientTimelineEvent,
   TimelineEventData,
 } from "../components/TimelineEvent";
-import { TimelineConfig, ClientTimeline } from "../layouts/Timeline";
+import { TimelineConfig, ClientTimeline } from "../Timeline";
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
@@ -95,12 +95,12 @@ export const getClientTimeline = (
 
   // todo throw error on no { minDateTime, maxDateTime }
 
-  console.log({ minDateTime, maxDateTime, groupMap });
-
   const eventsDurationMilliseconds =
     maxDateTime!.diff(minDateTime!).as("milliseconds") || 10000000; //if only one event, make it something, what though?
 
-  const gridDurationPaddingMilliseconds = eventsDurationMilliseconds * 0.1;
+  const gridDurationPaddingMilliseconds = Math.floor(
+    eventsDurationMilliseconds * 0.1
+  );
 
   const gridResolution = getGridResolution(eventsDurationMilliseconds);
 
@@ -116,7 +116,16 @@ export const getClientTimeline = (
     .diff(gridStartDateTime!)
     .as("milliseconds");
 
-  console.log({ gridStartDateTime, gridEndDateTime, gridDurationMilliseconds });
+  console.log({
+    minDateTime,
+    maxDateTime,
+    groupMap,
+    eventsDurationMilliseconds,
+    gridDurationPaddingMilliseconds,
+    gridStartDateTime,
+    gridEndDateTime,
+    gridDurationMilliseconds,
+  });
 
   clientEvents = clientEvents.map((event) => {
     return {
