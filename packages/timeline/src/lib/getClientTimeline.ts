@@ -10,6 +10,7 @@ import {
   TimelineEventData,
 } from "../components/TimelineEvent";
 import { TimelineConfig, ClientTimeline } from "../Timeline";
+import { last } from "deverything";
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
@@ -17,14 +18,23 @@ export const getClientTimeline = (
   containerWidth: number,
   containerHeight: number
 ): ClientTimeline => {
+  console.time("getClientTimeline");
+
   const gridWidth =
     (containerWidth - timelineConfig.rowDrawerWidth) * timelineConfig.gridZoom;
+
+  events.sort((a, b) => {
+    return parseDateTime(a.startDate || a.date)!
+      .diff(parseDateTime(b.startDate || b.date)!)
+      .as("milliseconds");
+  });
 
   let minDateTime: DateTime | undefined;
   let maxDateTime: DateTime | undefined;
 
   const groupMap: Record<string, { name: string; index: number }> = {};
 
+  let eventIndex = 0;
   let clientEvents = events.reduce((events: ClientTimelineEvent[], event) => {
     if (!event.date && !(event.startDate && event.endDate)) {
       console.log("skipped event", event);
@@ -61,6 +71,19 @@ export const getClientTimeline = (
       maxDateTime = endDateTime;
     }
 
+    // const previousEvent = last(events);
+    // if (
+    //   previousEvent &&
+    //   Math.abs(
+    //     minDateTime!.diff(previousEvent.endDateTime!).as("milliseconds")
+    //   ) < 200000000
+    // ) {
+    //   previousEvent.endDateTime = maxDateTime!;
+    //   previousEvent.groupLabel = "Grouped";
+    //   previousEvent.name = "";
+    //   return events;
+    // }
+
     let groupIndex = 0;
     if (timelineConfig.groupBy) {
       const groupKey = event[timelineConfig.groupBy] as string;
@@ -87,9 +110,11 @@ export const getClientTimeline = (
       ...event,
       x: -1, // since required
       y: groupIndex * timelineConfig.rowHeight + timelineConfig.rowHeight / 2,
+      groupIndex,
       dateTime: dateTime!,
       startDateTime,
       endDateTime,
+      eventIndex: eventIndex++,
     });
   }, []);
 
@@ -117,14 +142,17 @@ export const getClientTimeline = (
     .as("milliseconds");
 
   console.log({
-    minDateTime,
-    maxDateTime,
-    groupMap,
-    eventsDurationMilliseconds,
-    gridDurationPaddingMilliseconds,
-    gridStartDateTime,
-    gridEndDateTime,
-    gridDurationMilliseconds,
+    events: clientEvents.length,
+    // gridWidth,
+    // minDateTime: minDateTime!.toISO(),
+    // maxDateTime: maxDateTime!.toISO(),
+    // groupMap,
+    // gridResolution,
+    // eventsDurationMilliseconds,
+    // gridDurationPaddingMilliseconds,
+    // gridStartDateTime: gridStartDateTime!.toISO(),
+    // gridEndDateTime: gridEndDateTime!.toISO(),
+    // gridDurationMilliseconds,
   });
 
   clientEvents = clientEvents.map((event) => {
@@ -155,12 +183,6 @@ export const getClientTimeline = (
     };
   });
 
-  clientEvents.sort((a, b) =>
-    (a.startDateTime || a.dateTime!)
-      .diff(b.startDateTime || b.dateTime!)
-      .as("milliseconds")
-  );
-
   // FINISH THIS
   const contextualDiff = gridEndDateTime!.diff(gridStartDateTime!).as("years");
 
@@ -176,6 +198,8 @@ export const getClientTimeline = (
         .toFormat(gridResolutionToFormat(gridResolution)),
     };
   });
+
+  console.timeEnd("getClientTimeline");
 
   return {
     ...timelineConfig,

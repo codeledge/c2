@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useElementSize } from "usehooks-ts";
 import {
   TimelineEvent,
@@ -13,6 +13,7 @@ import { TimelineRowDrawer } from "./components/TimelineRowDrawer";
 import { ClientTimelineTick } from "./components/TimelineTick";
 import { TimelineTickBar } from "./components/TimelineTickBar";
 import { getClientTimeline } from "./lib/getClientTimeline";
+import { first, last } from "deverything";
 
 export type TimelineProps = {
   events: TimelineEventData[];
@@ -78,6 +79,42 @@ export const Timeline = ({
   const [wrapperRef, { width: currentWidth, height: currentHeight }] =
     useElementSize();
 
+  return (
+    <div
+      ref={wrapperRef}
+      id="timelineWrapper"
+      style={{
+        backgroundColor:
+          options?.backgroundColor || defaultTimelineConfig.backgroundColor, // meh
+        width,
+        height,
+      }}
+    >
+      {currentWidth &&
+        currentHeight && ( // wrapperRef not ready yet
+          <TimelineCanvas
+            events={events}
+            options={options}
+            onEventClick={onEventClick}
+            width={currentWidth}
+            height={currentHeight}
+          />
+        )}
+    </div>
+  );
+};
+
+export const TimelineCanvas = ({
+  events,
+  height,
+  width,
+  options,
+  onEventClick,
+}: Omit<TimelineProps, "width" | "height"> & {
+  width: number;
+  height: number;
+  options?: Partial<TimelineConfig>;
+}) => {
   const [timelineConfig, setTimelineConfig] = useState<TimelineConfig>({
     ...defaultTimelineConfig,
     ...options,
@@ -90,58 +127,11 @@ export const Timeline = ({
     }));
   };
 
-  return (
-    <div
-      ref={wrapperRef}
-      id="timelineWrapper"
-      style={{
-        backgroundColor: timelineConfig.backgroundColor,
-        width,
-        height,
-      }}
-    >
-      <div id="actions">
-        <button onClick={() => setZoom(timelineConfig.gridZoom + 1)}>
-          Zoom in
-        </button>
-        <button onClick={() => setZoom(1)}>Zoom reset</button>
-        <button
-          disabled={timelineConfig.gridZoom <= 1}
-          onClick={() => setZoom(timelineConfig.gridZoom - 1)}
-        >
-          Zoom out
-        </button>
-      </div>
-      <TimelineCanvas
-        events={events}
-        timelineConfig={timelineConfig}
-        onEventClick={onEventClick}
-        setZoom={setZoom}
-        width={currentWidth}
-        height={currentHeight}
-      />
-    </div>
-  );
-};
+  const [selectedEvent, setSelectedEvent] = useState<ClientTimelineEvent>();
 
-export const TimelineCanvas = ({
-  events,
-  timelineConfig,
-  setZoom,
-  height,
-  width,
-  onEventClick,
-}: Omit<TimelineProps, "width" | "height"> & {
-  width: number;
-  height: number;
-  timelineConfig: TimelineConfig;
-  setZoom: any;
-}) => {
-  const clientTimeline = getClientTimeline(
-    timelineConfig,
-    events,
-    width,
-    height
+  const clientTimeline = useMemo(
+    () => getClientTimeline(timelineConfig, events, width, height),
+    [timelineConfig, events, width, height]
   );
   const [focusedEvent, setFocusedEvent] = useState<ClientTimelineEvent>();
 
@@ -158,18 +148,52 @@ export const TimelineCanvas = ({
         width: clientTimeline.width,
       }}
     >
-      <div
+      <div id="actions">
+        <button onClick={() => setZoom(timelineConfig.gridZoom + 1)}>
+          Zoom in
+        </button>
+        <button onClick={() => setZoom(1)}>Zoom reset</button>
+        <button
+          disabled={timelineConfig.gridZoom <= 1}
+          onClick={() => setZoom(timelineConfig.gridZoom - 1)}
+        >
+          Zoom out
+        </button>
+        <button
+          onClick={() =>
+            setFocusedEvent(
+              focusedEvent
+                ? clientTimeline.clientEvents[focusedEvent.eventIndex - 1]
+                : last(clientTimeline.clientEvents)
+            )
+          }
+        >
+          Prev event
+        </button>
+        <button
+          onClick={() =>
+            setFocusedEvent(
+              focusedEvent
+                ? clientTimeline.clientEvents[focusedEvent.eventIndex + 1]
+                : first(clientTimeline.clientEvents)
+            )
+          }
+        >
+          Next event
+        </button>
+      </div>
+      {/* <div
         id="coverShape"
         style={{
           background: timelineConfig.backgroundColor,
           height: timelineConfig.ticksHeight,
           left: 0,
           position: "absolute",
-          top: 0,
+          top: 30,
           width: timelineConfig.rowDrawerWidth,
           zIndex: 1,
         }}
-      ></div>
+      ></div> */}
       <div
         id="scrollable"
         style={{
@@ -211,6 +235,7 @@ export const TimelineCanvas = ({
             {clientTimeline.clientGroups.map((group, groupIndex) => {
               return (
                 <line
+                  key={group.name}
                   className="timelineGridRowBottomLine"
                   x1={0}
                   x2={clientTimeline.gridWidth}
@@ -233,6 +258,7 @@ export const TimelineCanvas = ({
             {clientTimeline.clientEvents.map((event) => {
               return (
                 <TimelineEvent
+                  key={event.id}
                   onEventClick={onEventClick}
                   event={event}
                   clientTimeline={clientTimeline}

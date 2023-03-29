@@ -48,3 +48,26 @@ export const DurationEvent = () => {
     </SvgContainer>
   );
 };
+
+export const GroupEvent = () => {
+  const event = {
+    groupLabel: "32 events...",
+    startDate: "2021-01-01",
+    endDate: "2021-02-01",
+    dateTime: parseDateTime("2021-01-01")!, //wrong
+    startDateTime: parseDateTime("2021-01-01")!,
+    endDateTime: parseDateTime("2021-02-01")!,
+    x: 150,
+    y: 100,
+    startX: 100,
+    endX: 200,
+  };
+  return (
+    <SvgContainer>
+      <TimelineEvent
+        event={event}
+        clientTimeline={randomClientTimeline({}, [event])}
+      />
+    </SvgContainer>
+  );
+};

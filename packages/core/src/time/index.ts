@@ -1,7 +1,7 @@
 export * from "./parseDateTime";
 export * from "./randomDateTime";
 
-// values not tested
+// export from deverything
 export const MILLISECONDS_IN_DAY = 86400000;
 export const MILLISECONDS_IN_HOUR = 3600000;
 export const MILLISECONDS_IN_MINUTE = 60000;

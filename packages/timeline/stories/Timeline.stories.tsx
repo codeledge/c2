@@ -5,6 +5,7 @@ import { Timeline } from "../src/Timeline";
 
 export default {
   title: "Components/Timeline",
+  component: Timeline,
 } as Meta;
 
 export const SingleRow = () => {
@@ -16,6 +17,11 @@ export const SingleRow = () => {
           name: "Event 1",
           startDate: "2021-01-01T00:00:00.000Z",
           endDate: "2021-01-01T00:00:00.000Z",
+          images: [
+            {
+              url: "https://picsum.photos/200/300",
+            },
+          ],
         },
         {
           id: 2,
@@ -28,6 +34,12 @@ export const SingleRow = () => {
           name: "Event 3",
           startDate: "2021-01-03T00:00:00.000Z",
           endDate: "2021-01-04T00:00:00.000Z",
+        },
+        {
+          id: 4,
+          name: "Event 4",
+          startDate: "2022-01-03T00:00:00.000Z",
+          endDate: "2022-01-04T00:00:00.000Z",
         },
       ]}
     />
@@ -64,7 +76,7 @@ export const Paintings = () => {
       }}
       height={600}
       width={"100%"}
-      events={paintings.map((event) => ({
+      events={paintings.slice(100, 200).map((event) => ({
         ...event,
         date: event.start,
         name: event.title,

@@ -16,9 +16,12 @@ export type ClientTimelineEvent = TimelineEventData & {
   y: number;
   startX?: number;
   endX?: number;
+  groupIndex: number;
   dateTime: DateTime;
   startDateTime?: DateTime;
   endDateTime?: DateTime;
+  groupLabel?: string;
+  eventIndex: number;
 };
 
 export type TimelineEventProps = {
@@ -71,6 +74,18 @@ export const TimelineEvent = ({
           {event.name}
         </text>
       )}
+      {event.groupLabel && (
+        <text
+          dy={-eventNameFontSize + 1}
+          textAnchor="middle"
+          fontFamily="helvetica"
+          fontStyle={"italic"}
+          color={clientTimeline.primaryColor}
+          fontSize={eventNameFontSize}
+        >
+          {event.groupLabel}
+        </text>
+      )}
       {event.startX && event.endX ? (
         <path
           d={getElongatedCirclePathD(
@@ -78,7 +93,11 @@ export const TimelineEvent = ({
             { x: event.endX - event.x, y: 0 },
             eventCircleRadius
           )}
-          fill={clientTimeline.backgroundColor}
+          fill={
+            !event.groupLabel
+              ? clientTimeline.backgroundColor
+              : clientTimeline.primaryColor
+          }
           stroke={clientTimeline.primaryColor}
           strokeWidth={clientTimeline.eventStrokeWidth}
           {...props}
@@ -88,7 +107,11 @@ export const TimelineEvent = ({
           cx={0}
           cy={0}
           r={eventCircleRadius}
-          fill={clientTimeline.backgroundColor}
+          fill={
+            !event.groupLabel
+              ? clientTimeline.backgroundColor
+              : clientTimeline.primaryColor
+          }
           stroke={clientTimeline.primaryColor}
           strokeWidth={clientTimeline.eventStrokeWidth}
           {...props}
