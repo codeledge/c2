@@ -1,4 +1,4 @@
-import { Point } from "../types/Point";
+import { Point } from "deverything";
 
 export type SmoothLinePathOptions = {
   orientation?: "horizontal" | "vertical";

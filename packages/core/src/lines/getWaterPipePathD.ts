@@ -1,10 +1,6 @@
+import { WaterPipePathOptions } from "./WaterPipePath";
 import { getSmoothLinePathD } from "./getSmoothLinePathD";
-import { Point } from "../types/Point";
-
-export type WaterPipePathOptions = {
-  orientation?: "horizontal" | "vertical";
-  arcRadius?: number;
-};
+import { Point } from "deverything";
 
 export const getWaterPipePathD = (
   source: Point,

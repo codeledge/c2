@@ -1,4 +1,4 @@
-import { Point } from "@c2/core";
+import { Point } from "deverything";
 import Draggable from "react-draggable";
 
 export const DraggableDot = ({

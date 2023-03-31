@@ -1,5 +1,11 @@
 import { useMemo } from "react";
-import { getWaterPipePathD, Point, WaterPipePathOptions } from "@c2/core";
+import { getWaterPipePathD } from "./getWaterPipePathD";
+import { Point } from "deverything";
+
+export type WaterPipePathOptions = {
+  orientation?: "horizontal" | "vertical";
+  arcRadius?: number;
+};
 
 export const WaterPipePath = ({
   options,

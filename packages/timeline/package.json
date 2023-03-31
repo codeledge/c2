@@ -1,5 +1,5 @@
 {
-  "name": "@c2/ui",
+  "name": "@c2/timeline",
   "version": "0.0.0",
   "main": "./dist/Timeline.js",
   "module": "./dist/Timeline.mjs",
@@ -31,13 +31,11 @@
     "eslint": "^8.36.0",
     "eslint-config-custom": "workspace:*",
     "storybook-addon-performance": "^0.17.1",
-    "tsconfig": "workspace:*",
-    "typescript": "^4.9.5"
+    "tsconfig": "workspace:*"
   },
   "dependencies": {
     "@c2/core": "workspace:*",
     "@types/luxon": "^3.2.0",
-    "deverything": "^0.10.1",
     "luxon": "^3.3.0",
     "react": "^18.2.0",
     "react-draggable": "^4.4.5",

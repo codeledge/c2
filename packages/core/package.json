@@ -6,13 +6,36 @@
   "types": "./dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "pnpm build --watch",
+    "build-storybook": "build-storybook",
+    "build": "tsup src/index.tsx --dts",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-    "prepublish": "pnpm build"
+    "dev": "pnpm build --watch",
+    "lint": "eslint *.ts*",
+    "prepublish": "pnpm build",
+    "sb": "start-storybook -p 6007"
   },
   "devDependencies": {
-    "tsup": "^6.5.0",
+    "@babel/core": "^7.21.3",
+    "@storybook/addon-actions": "^6.5.16",
+    "@storybook/addon-essentials": "^6.5.16",
+    "@storybook/addon-interactions": "^6.5.16",
+    "@storybook/addon-links": "^6.5.16",
+    "@storybook/builder-webpack5": "^6.5.16",
+    "@storybook/cli": "^6.5.16",
+    "@storybook/manager-webpack5": "^6.5.16",
+    "@storybook/react": "^6.5.16",
+    "@storybook/testing-library": "^0.0.13",
+    "@types/react": "^18.0.30",
+    "@types/react-dom": "^18.0.11",
+    "babel-loader": "^9.1.2",
+    "eslint": "^8.36.0",
+    "eslint-config-custom": "workspace:*",
+    "storybook-addon-performance": "^0.17.1",
     "tsconfig": "workspace:*"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "18.2.0",
+    "react-draggable": "^4.4.5"
   }
 }

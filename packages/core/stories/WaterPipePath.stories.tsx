@@ -1,8 +1,8 @@
 import { Meta } from "@storybook/react";
-import { WaterPipePath } from "../../src/components/WaterPipePath";
 import { useState } from "react";
-import { DraggableDot } from "../helpers/DraggableDot";
-import { SvgContainer } from "../helpers/SvgContainer";
+import { WaterPipePath } from "../src/lines/WaterPipePath";
+import { DraggableDot } from "./helpers/DraggableDot";
+import { SvgContainer } from "./helpers/SvgContainer";
 
 export default {
   title: "Components/WaterPipePath",
