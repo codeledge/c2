@@ -12,10 +12,14 @@
     "dev": "pnpm build --watch",
     "lint": "eslint *.ts*",
     "prepublish": "pnpm build",
-    "storybook": "start-storybook -p 6008"
+    "test": "jest",
+    "sb": "start-storybook -p 6008"
   },
   "devDependencies": {
     "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.21.4",
+    "@babel/preset-typescript": "^7.21.4",
+    "@jest/globals": "^29.5.0",
     "@storybook/addon-actions": "^6.5.16",
     "@storybook/addon-essentials": "^6.5.16",
     "@storybook/addon-interactions": "^6.5.16",
@@ -25,20 +29,25 @@
     "@storybook/manager-webpack5": "^6.5.16",
     "@storybook/react": "^6.5.16",
     "@storybook/testing-library": "^0.0.13",
+    "@types/jest": "^29.5.0",
     "@types/react": "^18.0.30",
     "@types/react-dom": "^18.0.11",
     "babel-loader": "^9.1.2",
     "eslint": "^8.36.0",
     "eslint-config-custom": "workspace:*",
+    "jest": "^29.5.0",
     "storybook-addon-performance": "^0.17.1",
+    "ts-node": "^10.9.1",
     "tsconfig": "workspace:*"
   },
   "dependencies": {
     "@c2/core": "workspace:*",
     "@types/luxon": "^3.2.0",
+    "konva": "^8.4.3",
     "luxon": "^3.3.0",
     "react": "^18.2.0",
     "react-draggable": "^4.4.5",
+    "react-konva": "^18.2.5",
     "usehooks-ts": "^2.9.1"
   }
 }

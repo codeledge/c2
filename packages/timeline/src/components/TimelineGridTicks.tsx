@@ -7,22 +7,40 @@ export const TimelineGridTicks = ({
 }) => {
   return (
     <>
-      {clientTimeline.clientTicks.slice(1).map((tick) => {
+      <line
+        className="borderLeft"
+        x1={0}
+        x2={0}
+        y1={0}
+        y2={clientTimeline.gridHeight}
+        stroke={clientTimeline.primaryColor}
+        strokeWidth={1}
+      />
+      {clientTimeline.clientTicks.map((tick) => {
         return (
           <g key={tick.x}>
             <line
-              className="tickerDottedLine"
+              className="tickGridVerticalDottedLine"
               x1={tick.x}
               x2={tick.x}
               y1={0}
               y2={clientTimeline.gridHeight}
               stroke={clientTimeline.primaryColor}
               strokeWidth={1}
-              strokeDasharray="5,5"
+              strokeDasharray={"5,5"}
             />
           </g>
         );
       })}
+      <line
+        className="borderRight"
+        x1={clientTimeline.gridWidth}
+        x2={clientTimeline.gridWidth}
+        y1={0}
+        y2={clientTimeline.gridHeight}
+        stroke={clientTimeline.primaryColor}
+        strokeWidth={1}
+      />
     </>
   );
 };

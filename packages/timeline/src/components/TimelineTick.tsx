@@ -17,7 +17,7 @@ export const TimelineTick = ({
       <text
         x={clientTick.x}
         y={-10}
-        fontSize={9}
+        fontSize={12}
         textAnchor="middle"
         fill={clientTimeline.primaryColor}
       >

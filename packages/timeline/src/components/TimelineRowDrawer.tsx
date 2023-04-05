@@ -10,9 +10,8 @@ export const TimelineRowDrawer = ({
       style={{
         position: "sticky",
         left: 0,
-        flex: `0 0 ${clientTimeline.rowDrawerWidth}px`,
+        flex: `0 0 ${clientTimeline.rowDrawerWidth - 1}px`,
         background: clientTimeline.backgroundColor,
-        borderRight: `1px solid ${clientTimeline.primaryColor}`,
         boxSizing: "border-box",
       }}
     >
@@ -32,6 +31,7 @@ export const TimelineRowDrawer = ({
                 alignItems: "center",
                 justifyContent: "flex-end",
                 paddingRight: 10,
+                fontFamily: "helvetica",
               }}
             >
               <p style={{ textAlign: "right" }}>{group.name}</p>
