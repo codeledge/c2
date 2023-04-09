@@ -5,6 +5,8 @@ export const TimelineRowDrawer = ({
 }: {
   clientTimeline: ClientTimeline;
 }) => {
+  if (!clientTimeline.showRowLabels) return null;
+
   return (
     <div
       style={{

@@ -1,7 +1,7 @@
 import { ClientTimeline } from "../Timeline";
 
-export type ClientTimelineGroup = {
-  name: string;
+export type ClientTimelineRowLabel = {
+  name?: string;
   index: number;
 };
 

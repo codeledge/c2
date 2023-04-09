@@ -6,7 +6,7 @@ export const TimelineTickBar = ({
 }: {
   clientTimeline: ClientTimeline;
 }) => {
-  const width = clientTimeline.gridWidth + clientTimeline.gridMarginRight * 2;
+  const width = clientTimeline.gridWidth + clientTimeline.gridMargin * 2;
   return (
     <div
       id="tick-wrapper"
@@ -23,7 +23,11 @@ export const TimelineTickBar = ({
       <svg width={"100%"} height={clientTimeline.ticksHeight}>
         <g
           id="ticks"
-          transform={`translate(${clientTimeline.rowDrawerWidth} ${clientTimeline.ticksHeight})`}
+          transform={`translate(${
+            clientTimeline.showRowLabels
+              ? clientTimeline.rowDrawerWidth
+              : clientTimeline.gridMargin
+          } ${clientTimeline.ticksHeight})`}
         >
           {clientTimeline.clientTicks.map((clientTick) => {
             return (

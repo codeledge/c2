@@ -18,6 +18,7 @@ export const TimelineTick = ({
         x={clientTick.x}
         y={-10}
         fontSize={12}
+        fontFamily="helvetica"
         textAnchor="middle"
         fill={clientTimeline.primaryColor}
       >
@@ -28,7 +29,7 @@ export const TimelineTick = ({
         y1={0}
         x2={clientTick.x}
         y2={-5}
-        stroke={clientTimeline.primaryColor}
+        stroke={clientTimeline.secondaryColor}
       />
     </g>
   );

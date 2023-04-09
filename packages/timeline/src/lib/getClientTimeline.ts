@@ -6,6 +6,7 @@ import {
 } from "../components/TimelineEvent";
 import { TimelineConfig, ClientTimeline } from "../Timeline";
 import { getGridResolution } from "./getGridResolution";
+import { ClientTimelineRowLabel } from "../components/TimelineRowLabel";
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
@@ -14,21 +15,20 @@ export const getClientTimeline = (
   console.time("getClientTimeline");
 
   const gridWidth =
-    timelineConfig.containerWidth! -
-    timelineConfig.rowDrawerWidth -
-    timelineConfig.gridMarginRight +
-    2; // 1 px for the border on each side
+    (timelineConfig.containerWidth! -
+      (timelineConfig.showRowLabels
+        ? timelineConfig.rowDrawerWidth
+        : timelineConfig.gridMargin) -
+      timelineConfig.gridMargin) *
+    timelineConfig.gridZoom;
 
-  events.sort((a, b) => {
-    return parseDateTime(a.startDate || a.date)!
-      .diff(parseDateTime(b.startDate || b.date)!)
-      .as("milliseconds");
-  });
+  if (gridWidth <= 0)
+    throw new Error("gridWidth is < 0, this should not happen");
 
   let minDateTime: DateTime | undefined;
   let maxDateTime: DateTime | undefined;
 
-  const groupMap: Record<string, { name: string; index: number }> = {};
+  const groupMap: Record<string, ClientTimelineRowLabel> = {};
 
   let eventIndex = 0;
   let clientEvents = events.reduce((events: ClientTimelineEvent[], event) => {
@@ -38,6 +38,10 @@ export const getClientTimeline = (
     }
 
     let dateTime = parseDateTime(event.date);
+    if (event.date && !dateTime) {
+      console.log("skipped event for invalid date", event.date);
+      return events;
+    }
     const startDateTime = parseDateTime(event.startDate);
     const endDateTime = parseDateTime(event.endDate);
 
@@ -97,7 +101,6 @@ export const getClientTimeline = (
       groupIndex = 0;
 
       groupMap[""] = {
-        name: "Ungrouped",
         index: groupIndex,
       };
     }
@@ -138,8 +141,6 @@ export const getClientTimeline = (
     gridWidth,
     timelineConfig.minTickStepWidth
   );
-
-  console.log(gridResolution);
 
   const tickUnit = Object.keys(gridResolution)[0] as DateTimeUnit;
 
@@ -203,14 +204,24 @@ export const getClientTimeline = (
     };
   });
 
+  clientEvents.sort((a, b) => {
+    return (a.startDateTime || a.dateTime)
+      .diff(b.startDateTime || b.dateTime)
+      .as("milliseconds");
+  });
+
   console.timeEnd("getClientTimeline");
 
   return {
     ...timelineConfig,
-    scrollableHeight:
-      timelineConfig.containerHeight! - timelineConfig.actionsHeight,
     gridHeight: timelineConfig.rowHeight * Object.keys(groupMap).length,
     gridWidth,
+    gridX: timelineConfig.showRowLabels ? timelineConfig.rowDrawerWidth : 0,
+    scrollableWidth: timelineConfig.showRowLabels
+      ? timelineConfig.containerWidth
+      : timelineConfig.containerWidth - timelineConfig.rowDrawerWidth,
+    scrollableHeight:
+      timelineConfig.containerHeight - timelineConfig.ticksHeight,
     clientEvents,
     clientGroups: Object.values(groupMap),
     eventsRangeMs,

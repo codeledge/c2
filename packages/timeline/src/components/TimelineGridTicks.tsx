@@ -13,7 +13,7 @@ export const TimelineGridTicks = ({
         x2={0}
         y1={0}
         y2={clientTimeline.gridHeight}
-        stroke={clientTimeline.primaryColor}
+        stroke={clientTimeline.secondaryColor}
         strokeWidth={1}
       />
       {clientTimeline.clientTicks.map((tick) => {
@@ -25,7 +25,7 @@ export const TimelineGridTicks = ({
               x2={tick.x}
               y1={0}
               y2={clientTimeline.gridHeight}
-              stroke={clientTimeline.primaryColor}
+              stroke={clientTimeline.secondaryColor}
               strokeWidth={1}
               strokeDasharray={"5,5"}
             />
@@ -38,7 +38,7 @@ export const TimelineGridTicks = ({
         x2={clientTimeline.gridWidth}
         y1={0}
         y2={clientTimeline.gridHeight}
-        stroke={clientTimeline.primaryColor}
+        stroke={clientTimeline.secondaryColor}
         strokeWidth={1}
       />
     </>
