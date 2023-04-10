@@ -1,9 +1,5 @@
 import { TimelineEventData } from "../src/components/TimelineEvent";
-import {
-  ClientTimeline,
-  defaultTimelineConfig,
-  TimelineConfig,
-} from "../src/Timeline";
+import { defaultTimelineConfig } from "../src/Timeline";
 import { getClientTimeline } from "../src/lib/getClientTimeline";
 import {
   isOdd,
@@ -13,6 +9,8 @@ import {
   array,
   randomDateRange,
 } from "deverything";
+import { TimelineConfig } from "../src/types/TimelineConfig";
+import { ClientTimeline } from "../src/types/ClientTimeline";
 
 export const randomTimelineConfig = (
   values: Partial<TimelineConfig> = {}
@@ -27,7 +25,7 @@ export const randomClientTimeline = (
   values: Partial<TimelineConfig> = {},
   data: TimelineEventData[] = []
 ): ClientTimeline => {
-  return getClientTimeline(randomTimelineConfig(values), data, 1000, 1000);
+  return getClientTimeline(randomTimelineConfig(values), data);
 };
 
 export const randomTimelineData = (): TimelineEventData[] => {

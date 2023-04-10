@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useElementSize } from "usehooks-ts";
 import {
@@ -6,12 +5,13 @@ import {
   TimelineEventData,
   ClientTimelineEvent,
 } from "./components/TimelineEvent";
-import { ClientTimelineRowLabel } from "./components/TimelineRowLabel";
-import { ClientTimelineTick } from "./components/TimelineTick";
 import { getClientTimeline } from "./lib/getClientTimeline";
 import { Stage, Layer, Text, Group, Rect, Line } from "react-konva";
 import { TimelineActions } from "./components/TimelineActions";
 import { TimelineEventLabel } from "./components/TimelineEventLabel";
+import { TimelineConfig } from "./types/TimelineConfig";
+import { Point } from "deverything";
+import { TimelineRowLabels } from "./components/TimelineRowLabels";
 
 export type TimelineProps = {
   events: TimelineEventData[];
@@ -20,47 +20,6 @@ export type TimelineProps = {
   width?: number | string;
   onEventClick?: TimelineEventProps["onEventClick"];
   options?: Partial<TimelineConfig>;
-};
-
-export type TimelineConfig = {
-  backgroundColor: string;
-  containerHeight: number;
-  containerWidth: number;
-  eventCircleRadius: number;
-  eventDateFontSize: number;
-  eventDateFormat: string;
-  eventHeight: number;
-  eventNameFontSize: number;
-  eventStrokeWidth: number;
-  gridMargin: number;
-  gridZoom: number;
-  groupBy?: string;
-  minTickStepWidth: number;
-  primaryColor: string;
-  rowDrawerWidth: number;
-  rowHeight: number;
-  secondaryColor: string;
-  showRowLabels: boolean;
-  showEventLabels: boolean;
-  showEventDates: boolean;
-  ticksHeight: number;
-};
-
-export type ClientTimeline = TimelineConfig & {
-  clientEvents: ClientTimelineEvent[];
-  clientGroups: ClientTimelineRowLabel[];
-  clientTicks: ClientTimelineTick[];
-  eventsRangeMs: number;
-  gridEndDateTime: DateTime;
-  gridHeight: number;
-  gridRangeMs: number;
-  gridStartDateTime: DateTime;
-  gridWidth: number;
-  gridX: number;
-  maxDateTime?: DateTime;
-  minDateTime?: DateTime;
-  scrollableWidth: number;
-  scrollableHeight: number;
 };
 
 export const defaultTimelineConfig: TimelineConfig = {
@@ -156,7 +115,7 @@ export const CanvasTimelineArea = ({
   const [selectedEvent, setSelectedEvent] = useState<ClientTimelineEvent>();
   const [focusedEvent, setFocusedEvent] = useState<ClientTimelineEvent>();
   const [cursor, setCursor] = useState("default");
-  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
+  const [scrollPosition, setScrollPosition] = useState<Point>({ x: 0, y: 0 });
 
   const clientTimeline = useMemo(
     () => getClientTimeline(timelineConfig, events),
@@ -176,11 +135,14 @@ export const CanvasTimelineArea = ({
     setScrollPosition(({ x, y }) => ({
       x: clamp(x + e.deltaX, {
         min: 0,
-        max: clientTimeline.gridWidth - clientTimeline.containerWidth,
+        max: clientTimeline.gridWidth - clientTimeline.scrollableWidth,
       }),
       y: clamp(y + e.deltaY, {
         min: 0,
-        max: clientTimeline.gridHeight - clientTimeline.scrollableHeight,
+        max:
+          clientTimeline.gridHeight -
+          clientTimeline.scrollableHeight +
+          clientTimeline.gridMargin,
       }),
     }));
   };
@@ -201,12 +163,12 @@ export const CanvasTimelineArea = ({
             y={clientTimeline.ticksHeight}
           >
             <Group id="scrollableGrid" y={-scrollPosition.y}>
-              <Line
+              {/* <Line
                 className="borderLeft"
                 points={[0, 0, 0, clientTimeline.gridHeight]}
                 stroke={clientTimeline.secondaryColor}
                 strokeWidth={1}
-              />
+              /> */}
               {clientTimeline.clientTicks.map((tick) => {
                 return (
                   <Line
@@ -249,7 +211,6 @@ export const CanvasTimelineArea = ({
                 return (
                   <Group
                     key={event.id}
-                    // opacity={0.5}
                     onMouseEnter={() => {
                       setCursor("pointer");
                     }}
@@ -268,7 +229,7 @@ export const CanvasTimelineArea = ({
                         (event.startX || event.x) -
                         clientTimeline.eventCircleRadius
                       }
-                      y={event.y - clientTimeline.eventCircleRadius}
+                      y={event.y - clientTimeline.eventHeight / 2}
                       width={
                         event.endX && event.startX
                           ? event.endX -
@@ -277,13 +238,10 @@ export const CanvasTimelineArea = ({
                           : 2 * clientTimeline.eventCircleRadius
                       }
                       height={clientTimeline.eventHeight}
-                      onMouseEnter={(e) => {
-                        // e.container().style.cursor = "pointer";
-                      }}
                       fill={
-                        !event.groupLabel
+                        !event.clusterLabel
                           ? clientTimeline.backgroundColor
-                          : clientTimeline.primaryColor
+                          : clientTimeline.secondaryColor
                       }
                       cornerRadius={clientTimeline.eventCircleRadius}
                       stroke={clientTimeline.primaryColor}
@@ -291,7 +249,7 @@ export const CanvasTimelineArea = ({
                     />
                     {clientTimeline.showEventDates && (
                       <Text
-                        y={event.y + clientTimeline.eventCircleRadius + 4}
+                        y={event.y + clientTimeline.eventHeight / 2 + 4}
                         x={event.x}
                         align="center"
                         offsetX={100}
@@ -301,10 +259,10 @@ export const CanvasTimelineArea = ({
                         fontSize={12}
                         wrap="none"
                         text={
-                          event.startDateTime && event.endDateTime
-                            ? `${event.startDateTime?.toFormat(
+                          event.edgeStartDateTime !== event.edgeEndDateTime
+                            ? `${event.edgeStartDateTime?.toFormat(
                                 clientTimeline.eventDateFormat
-                              )} ~ ${event.endDateTime?.toFormat(
+                              )} ~ ${event.edgeEndDateTime?.toFormat(
                                 clientTimeline.eventDateFormat
                               )}`
                             : event.dateTime?.toFormat(
@@ -318,14 +276,15 @@ export const CanvasTimelineArea = ({
               })}
             </Group>
           </Layer>
-          <Layer x={-scrollPosition.x}>
+          <Layer id="stickyTicker" x={-scrollPosition.x}>
             <Rect
+              id="stickyTickerBackground"
               width={clientTimeline.containerWidth}
               height={clientTimeline.ticksHeight}
               fill={clientTimeline.backgroundColor}
             />
             <Group
-              id="stickyTicker"
+              id="stickyTickerTicks"
               x={clientTimeline.gridX}
               y={clientTimeline.ticksHeight}
             >
@@ -359,46 +318,10 @@ export const CanvasTimelineArea = ({
               />
             </Group>
           </Layer>
-          <Layer id="rowLabels" y={clientTimeline.ticksHeight}>
-            {clientTimeline.showRowLabels && (
-              <Group id="stickyRowLabels" y={-scrollPosition.y}>
-                <Rect
-                  height={clientTimeline.gridHeight}
-                  width={clientTimeline.rowDrawerWidth}
-                  fill={clientTimeline.backgroundColor}
-                />
-                <Line
-                  className="borderRight"
-                  points={[
-                    clientTimeline.rowDrawerWidth,
-                    0,
-                    clientTimeline.rowDrawerWidth,
-                    clientTimeline.gridHeight,
-                  ]}
-                  stroke={clientTimeline.secondaryColor}
-                  strokeWidth={1}
-                />
-                {clientTimeline.clientGroups.map((group) => {
-                  return (
-                    <Group
-                      key={group.name}
-                      y={group.index * clientTimeline.rowHeight}
-                      width={clientTimeline.rowDrawerWidth}
-                    >
-                      <Text
-                        align="right"
-                        text={group.name}
-                        fontSize={14}
-                        width={clientTimeline.rowDrawerWidth - 10}
-                        height={clientTimeline.rowHeight}
-                        verticalAlign="middle"
-                      />
-                    </Group>
-                  );
-                })}
-              </Group>
-            )}
-          </Layer>
+          <TimelineRowLabels
+            clientTimeline={clientTimeline}
+            scrollPosition={scrollPosition}
+          />
         </Stage>
       </div>
     </>

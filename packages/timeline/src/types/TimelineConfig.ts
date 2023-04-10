@@ -1,0 +1,23 @@
+export type TimelineConfig = {
+  backgroundColor: string;
+  containerHeight: number;
+  containerWidth: number;
+  eventCircleRadius: number;
+  eventDateFontSize: number;
+  eventDateFormat: string;
+  eventHeight: number;
+  eventNameFontSize: number;
+  eventStrokeWidth: number;
+  gridMargin: number;
+  gridZoom: number;
+  groupBy?: string;
+  minTickStepWidth: number;
+  primaryColor: string;
+  rowDrawerWidth: number;
+  rowHeight: number;
+  secondaryColor: string;
+  showRowLabels: boolean;
+  showEventLabels: boolean;
+  showEventDates: boolean;
+  ticksHeight: number;
+};

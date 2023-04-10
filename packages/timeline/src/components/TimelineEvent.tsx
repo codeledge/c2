@@ -1,6 +1,5 @@
 import { DateTime } from "luxon";
-import { ClientTimeline } from "../Timeline";
-import { getElongatedCirclePathD } from "@c2/core";
+import { ClientTimeline } from "../types/ClientTimeline";
 
 export type TimelineEventData = {
   id?: string | number;
@@ -20,7 +19,9 @@ export type ClientTimelineEvent = TimelineEventData & {
   dateTime: DateTime;
   startDateTime?: DateTime;
   endDateTime?: DateTime;
-  groupLabel?: string;
+  edgeStartDateTime: DateTime;
+  edgeEndDateTime: DateTime;
+  clusterLabel?: string;
   eventIndex: number;
 };
 
@@ -33,104 +34,3 @@ export type TimelineEventProps = {
   >;
   clientTimeline: ClientTimeline;
 } & React.SVGProps<SVGCircleElement>;
-
-const eventCircleRadius = 5;
-const eventDateFontSize = 12;
-const eventNameFontSize = 13;
-
-export const TimelineEvent = ({
-  event,
-  onEventClick,
-  clientTimeline,
-  setFocusedEvent,
-  focusedEvent,
-  ...props
-}: TimelineEventProps) => {
-  return (
-    <g
-      transform={`translate(${event.x},${event.y})`}
-      style={{
-        opacity: focusedEvent?.id ? 0.2 : 1,
-      }}
-      onClick={onEventClick ? () => onEventClick(event) : undefined}
-      cursor={onEventClick ? "pointer" : undefined}
-      onMouseEnter={() => {
-        setFocusedEvent?.(event);
-      }}
-      onMouseLeave={() => {
-        setFocusedEvent?.(undefined);
-      }}
-      tabIndex={1}
-    >
-      {event.name && (
-        <text
-          filter="url(#labelBackground)"
-          dy={-eventNameFontSize + 1}
-          textAnchor="middle"
-          fontFamily="helvetica"
-          color={clientTimeline.primaryColor}
-          fontSize={eventNameFontSize}
-        >
-          {event.name}
-        </text>
-      )}
-      {event.groupLabel && (
-        <text
-          dy={-eventNameFontSize + 1}
-          textAnchor="middle"
-          fontFamily="helvetica"
-          fontStyle={"italic"}
-          color={clientTimeline.primaryColor}
-          fontSize={eventNameFontSize}
-        >
-          {event.groupLabel}
-        </text>
-      )}
-      {event.startX && event.endX ? (
-        <path
-          d={getElongatedCirclePathD(
-            { x: event.startX - event.x, y: 0 }, //because is relative to g
-            { x: event.endX - event.x, y: 0 },
-            eventCircleRadius
-          )}
-          fill={
-            !event.groupLabel
-              ? clientTimeline.backgroundColor
-              : clientTimeline.primaryColor
-          }
-          stroke={clientTimeline.primaryColor}
-          strokeWidth={clientTimeline.eventStrokeWidth}
-          {...props}
-        />
-      ) : (
-        <circle
-          cx={0}
-          cy={0}
-          r={eventCircleRadius}
-          fill={
-            !event.groupLabel
-              ? clientTimeline.backgroundColor
-              : clientTimeline.primaryColor
-          }
-          stroke={clientTimeline.primaryColor}
-          strokeWidth={clientTimeline.eventStrokeWidth}
-          {...props}
-        />
-      )}
-      <text
-        filter="url(#labelBackground)"
-        dy={eventCircleRadius + eventDateFontSize + 2}
-        textAnchor="middle"
-        fontFamily="helvetica"
-        color={clientTimeline.primaryColor}
-        fontSize={12}
-      >
-        {event.startDateTime && event.endDateTime
-          ? `${event.startDateTime?.toFormat(
-              clientTimeline.eventDateFormat
-            )} - ${event.endDateTime?.toFormat(clientTimeline.eventDateFormat)}`
-          : event.dateTime?.toFormat(clientTimeline.eventDateFormat)}
-      </text>
-    </g>
-  );
-};

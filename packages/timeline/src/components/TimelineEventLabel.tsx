@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Label, Tag, Text } from "react-konva";
-import { ClientTimeline } from "../Timeline";
 import { ClientTimelineEvent } from "./TimelineEvent";
+import { ClientTimeline } from "../types/ClientTimeline";
 
 export const TimelineEventLabel = ({
   event,
@@ -23,7 +23,7 @@ export const TimelineEventLabel = ({
     <Label
       y={
         event.y -
-        clientTimeline.eventCircleRadius -
+        clientTimeline.eventHeight / 2 -
         clientTimeline.eventNameFontSize -
         2
       }
@@ -47,7 +47,7 @@ export const TimelineEventLabel = ({
         wrap="none"
         verticalAlign="bottom"
         fontSize={clientTimeline.eventNameFontSize}
-        text={event.name}
+        text={event.clusterLabel || event.name}
         ref={textRef}
       />
     </Label>

@@ -1,4 +1,4 @@
-import { TimelineConfig } from "../Timeline";
+import { TimelineConfig } from "../types/TimelineConfig";
 
 export const TimelineActions = ({
   timelineConfig,

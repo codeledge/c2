@@ -4,9 +4,11 @@ import {
   ClientTimelineEvent,
   TimelineEventData,
 } from "../components/TimelineEvent";
-import { TimelineConfig, ClientTimeline } from "../Timeline";
 import { getGridResolution } from "./getGridResolution";
-import { ClientTimelineRowLabel } from "../components/TimelineRowLabel";
+import { ClientTimeline } from "../types/ClientTimeline";
+import { TimelineConfig } from "../types/TimelineConfig";
+import { ClientTimelineRowLabel } from "../components/TimelineRowLabels";
+import { last } from "deverything";
 
 export const getClientTimeline = (
   timelineConfig: TimelineConfig,
@@ -16,10 +18,8 @@ export const getClientTimeline = (
 
   const gridWidth =
     (timelineConfig.containerWidth! -
-      (timelineConfig.showRowLabels
-        ? timelineConfig.rowDrawerWidth
-        : timelineConfig.gridMargin) -
-      timelineConfig.gridMargin) *
+      (timelineConfig.showRowLabels ? timelineConfig.rowDrawerWidth : 0) -
+      timelineConfig.gridMargin * 2) *
     timelineConfig.gridZoom;
 
   if (gridWidth <= 0)
@@ -30,59 +30,62 @@ export const getClientTimeline = (
 
   const groupMap: Record<string, ClientTimelineRowLabel> = {};
 
+  events.sort((a, b) => {
+    return (b.startDate || b.date)! > (a.startDate || a.date)! ? -1 : 1;
+  });
+
   let eventIndex = 0;
   let clientEvents = events.reduce((events: ClientTimelineEvent[], event) => {
-    if (!event.date && !(event.startDate && event.endDate)) {
+    let dateTime: DateTime;
+    let edgeEndDateTime: DateTime;
+    let edgeStartDateTime: DateTime;
+    let startDateTime: DateTime | undefined;
+    let endDateTime: DateTime | undefined;
+    if (event.date && !(event.startDate && event.endDate)) {
+      const parsedDateTime = parseDateTime(event.date);
+      if (!parsedDateTime) {
+        console.log("skipped event", event);
+        return events;
+      }
+      dateTime = edgeEndDateTime = edgeStartDateTime = parsedDateTime;
+    } else if (event.startDate && event.endDate) {
+      startDateTime = parseDateTime(event.startDate);
+      endDateTime = parseDateTime(event.endDate);
+      if (!startDateTime || !endDateTime) {
+        console.log("skipped event", event);
+        return events;
+      }
+      dateTime = getRandMidDateTime(startDateTime, endDateTime);
+      edgeEndDateTime = endDateTime;
+      edgeStartDateTime = startDateTime;
+    } else {
       console.log("skipped event", event);
       return events;
     }
 
-    let dateTime = parseDateTime(event.date);
-    if (event.date && !dateTime) {
-      console.log("skipped event for invalid date", event.date);
+    if (!minDateTime || edgeStartDateTime < minDateTime) {
+      minDateTime = edgeStartDateTime;
+    }
+    if (!maxDateTime || edgeEndDateTime > maxDateTime) {
+      maxDateTime = edgeEndDateTime;
+    }
+
+    const previousEvent = last(events);
+    if (
+      previousEvent &&
+      Math.abs(
+        edgeStartDateTime.diff(previousEvent.edgeEndDateTime).as("milliseconds")
+      ) < 10000000000
+    ) {
+      previousEvent.edgeEndDateTime = edgeEndDateTime;
+      previousEvent.dateTime = getRandMidDateTime(
+        previousEvent.edgeStartDateTime,
+        previousEvent.edgeEndDateTime
+      );
+      previousEvent.clusterLabel = "Grouped";
+      previousEvent.name = "";
       return events;
     }
-    const startDateTime = parseDateTime(event.startDate);
-    const endDateTime = parseDateTime(event.endDate);
-
-    if (!dateTime && startDateTime && endDateTime) {
-      dateTime = endDateTime.minus({
-        milliseconds: endDateTime.diff(startDateTime).as("milliseconds") / 2,
-      });
-    }
-
-    if (!minDateTime) {
-      minDateTime = startDateTime || dateTime;
-    }
-    if (!maxDateTime) {
-      maxDateTime = dateTime || endDateTime;
-    }
-
-    if (dateTime && dateTime < minDateTime!) {
-      minDateTime = dateTime;
-    }
-    if (startDateTime && startDateTime < minDateTime!) {
-      minDateTime = startDateTime;
-    }
-    if (dateTime && dateTime > maxDateTime!) {
-      maxDateTime = dateTime;
-    }
-    if (endDateTime && endDateTime > maxDateTime!) {
-      maxDateTime = endDateTime;
-    }
-
-    // const previousEvent = last(events);
-    // if (
-    //   previousEvent &&
-    //   Math.abs(
-    //     minDateTime!.diff(previousEvent.endDateTime!).as("milliseconds")
-    //   ) < 200000000
-    // ) {
-    //   previousEvent.endDateTime = maxDateTime!;
-    //   previousEvent.groupLabel = "Grouped";
-    //   previousEvent.name = "";
-    //   return events;
-    // }
 
     let groupIndex = 0;
     if (timelineConfig.groupBy) {
@@ -113,7 +116,9 @@ export const getClientTimeline = (
       dateTime: dateTime!,
       startDateTime,
       endDateTime,
-      eventIndex: eventIndex++,
+      edgeEndDateTime,
+      edgeStartDateTime,
+      eventIndex: eventIndex++, // doesn't work if sorting happens after this
     });
   }, []);
 
@@ -185,17 +190,17 @@ export const getClientTimeline = (
         gridRangeMs,
         gridWidth
       ),
-      startX: event.startDateTime
+      startX: event.edgeStartDateTime
         ? getGridPositonX(
-            event.startDateTime,
+            event.edgeStartDateTime,
             gridStartDateTime,
             gridRangeMs,
             gridWidth
           )
         : undefined,
-      endX: event.endDateTime
+      endX: event.edgeEndDateTime
         ? getGridPositonX(
-            event.endDateTime,
+            event.edgeEndDateTime,
             gridStartDateTime,
             gridRangeMs,
             gridWidth
@@ -204,33 +209,31 @@ export const getClientTimeline = (
     };
   });
 
-  clientEvents.sort((a, b) => {
-    return (a.startDateTime || a.dateTime)
-      .diff(b.startDateTime || b.dateTime)
-      .as("milliseconds");
-  });
-
   console.timeEnd("getClientTimeline");
 
   return {
     ...timelineConfig,
-    gridHeight: timelineConfig.rowHeight * Object.keys(groupMap).length,
-    gridWidth,
-    gridX: timelineConfig.showRowLabels ? timelineConfig.rowDrawerWidth : 0,
-    scrollableWidth: timelineConfig.showRowLabels
-      ? timelineConfig.containerWidth
-      : timelineConfig.containerWidth - timelineConfig.rowDrawerWidth,
-    scrollableHeight:
-      timelineConfig.containerHeight - timelineConfig.ticksHeight,
     clientEvents,
     clientGroups: Object.values(groupMap),
-    eventsRangeMs,
-    gridRangeMs,
-    gridEndDateTime,
-    maxDateTime,
-    gridStartDateTime,
-    minDateTime,
     clientTicks,
+    eventsRangeMs,
+    gridEndDateTime,
+    gridHeight: timelineConfig.rowHeight * Object.keys(groupMap).length,
+    gridRangeMs,
+    gridStartDateTime,
+    gridWidth,
+    gridX:
+      timelineConfig.gridMargin +
+      (timelineConfig.showRowLabels ? timelineConfig.rowDrawerWidth : 0),
+    maxDateTime,
+    minDateTime,
+    scrollableHeight:
+      timelineConfig.containerHeight - timelineConfig.ticksHeight,
+    scrollableWidth: timelineConfig.showRowLabels
+      ? timelineConfig.containerWidth - timelineConfig.gridMargin * 2
+      : timelineConfig.containerWidth -
+        timelineConfig.rowDrawerWidth -
+        timelineConfig.gridMargin * 2,
   };
 };
 
@@ -257,4 +260,10 @@ const getGridPositonX = (
     (dateTime.diff(gridStartDateTime).as("milliseconds") / gridRangeMs) *
     gridWidth
   );
+};
+
+const getRandMidDateTime = (startDateTime: DateTime, endDateTime: DateTime) => {
+  return endDateTime.minus({
+    milliseconds: endDateTime.diff(startDateTime).as("milliseconds") / 2,
+  });
 };
