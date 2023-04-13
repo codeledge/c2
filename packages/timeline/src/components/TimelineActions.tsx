@@ -5,7 +5,7 @@ export const TimelineActions = ({
   updateTimelineConfig,
 }: {
   timelineConfig: TimelineConfig;
-  updateTimelineConfig: any;
+  updateTimelineConfig: (p: Partial<TimelineConfig>) => void;
 }) => {
   return (
     <div
@@ -20,18 +20,18 @@ export const TimelineActions = ({
     >
       <button
         onClick={() =>
-          updateTimelineConfig({ zoom: timelineConfig.gridZoom + 1 })
+          updateTimelineConfig({ gridZoom: timelineConfig.gridZoom + 1 })
         }
       >
         +
       </button>
-      <button onClick={() => updateTimelineConfig({ zoom: 1 })}>
+      <button onClick={() => updateTimelineConfig({ gridZoom: 1 })}>
         Zoom reset
       </button>
       <button
         disabled={timelineConfig.gridZoom <= 1}
         onClick={() =>
-          updateTimelineConfig({ zoom: timelineConfig.gridZoom - 1 })
+          updateTimelineConfig({ gridZoom: timelineConfig.gridZoom - 1 })
         }
       >
         -

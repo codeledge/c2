@@ -10,7 +10,7 @@ import { Stage, Layer, Text, Group, Rect, Line } from "react-konva";
 import { TimelineActions } from "./components/TimelineActions";
 import { TimelineEventLabel } from "./components/TimelineEventLabel";
 import { TimelineConfig } from "./types/TimelineConfig";
-import { Point } from "deverything";
+import { Point, clamp } from "deverything";
 import { TimelineRowLabels } from "./components/TimelineRowLabels";
 
 export type TimelineProps = {
@@ -126,25 +126,24 @@ export const CanvasTimelineArea = ({
     return clientTimeline.rowHeight * rowIndex + clientTimeline.rowHeight;
   };
 
-  console.log(
-    "clientTimeline.gridWidth - clientTimeline.scrollableWidth",
-    clientTimeline.gridWidth - clientTimeline.scrollableWidth
-  );
-
   const onScroll = (e: any) => {
-    setScrollPosition(({ x, y }) => ({
-      x: clamp(x + e.deltaX, {
-        min: 0,
-        max: clientTimeline.gridWidth - clientTimeline.scrollableWidth,
-      }),
-      y: clamp(y + e.deltaY, {
-        min: 0,
-        max:
-          clientTimeline.gridHeight -
-          clientTimeline.scrollableHeight +
-          clientTimeline.gridMargin,
-      }),
-    }));
+    setScrollPosition(({ x, y }) => {
+      return {
+        x: clamp({
+          number: x + e.deltaX,
+          min: 0,
+          max: clientTimeline.gridWidth - clientTimeline.scrollableWidth,
+        }),
+        y: clamp({
+          number: y + e.deltaY,
+          min: 0,
+          max:
+            clientTimeline.gridHeight -
+            clientTimeline.scrollableHeight +
+            clientTimeline.gridMargin,
+        }),
+      };
+    });
   };
 
   return (
@@ -326,20 +325,4 @@ export const CanvasTimelineArea = ({
       </div>
     </>
   );
-};
-
-// get from dev
-export const clamp = (
-  number: number,
-  { min, max }: { min: number; max: number }
-) => {
-  if (number < min) {
-    return min;
-  }
-
-  if (number > max && max > min) {
-    return max;
-  }
-
-  return number;
 };

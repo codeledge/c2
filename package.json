@@ -25,6 +25,6 @@
   },
   "packageManager": "pnpm@7.1.5",
   "dependencies": {
-    "deverything": "^0.11.0"
+    "deverything": "^0.15.0"
   }
 }

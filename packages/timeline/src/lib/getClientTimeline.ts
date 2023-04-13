@@ -16,11 +16,13 @@ export const getClientTimeline = (
 ): ClientTimeline => {
   console.time("getClientTimeline");
 
-  const gridWidth =
-    (timelineConfig.containerWidth! -
-      (timelineConfig.showRowLabels ? timelineConfig.rowDrawerWidth : 0) -
-      timelineConfig.gridMargin * 2) *
-    timelineConfig.gridZoom;
+  const scrollableWidth = timelineConfig.showRowLabels
+    ? timelineConfig.containerWidth -
+      timelineConfig.rowDrawerWidth -
+      timelineConfig.gridMargin * 2
+    : timelineConfig.containerWidth - timelineConfig.gridMargin * 2;
+
+  const gridWidth = scrollableWidth * timelineConfig.gridZoom; // zoom 1 = they are the same
 
   if (gridWidth <= 0)
     throw new Error("gridWidth is < 0, this should not happen");
@@ -229,11 +231,7 @@ export const getClientTimeline = (
     minDateTime,
     scrollableHeight:
       timelineConfig.containerHeight - timelineConfig.ticksHeight,
-    scrollableWidth: timelineConfig.showRowLabels
-      ? timelineConfig.containerWidth - timelineConfig.gridMargin * 2
-      : timelineConfig.containerWidth -
-        timelineConfig.rowDrawerWidth -
-        timelineConfig.gridMargin * 2,
+    scrollableWidth,
   };
 };
 
