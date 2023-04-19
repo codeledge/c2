@@ -35,8 +35,9 @@ export const CanvasSingle = () => {
         {
           id: 2,
           name: "Event 2",
-          date: "2021-01-02T00:00:00.000Z",
-          // endDate: "2021-01-03T00:00:00.000Z",
+          // date: "2021-01-02T00:0:00.000Z",
+          startDate: "2021-01-01T06:00:00.000Z",
+          endDate: "2021-01-03T00:00:00.000Z",
         },
         {
           id: 3,
